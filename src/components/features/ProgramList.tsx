@@ -19,11 +19,13 @@ import {
 } from '@chakra-ui/react';
 import { ProgramInfo } from '../../types/ProgramInfo';
 import { useDebounce } from '../../hooks/useDebounce';
+import { ProgramDetails } from './ProgramDetails';
 
 type SortField = 'name' | 'publisher' | 'install_date' | 'version';
 type SortDirection = 'asc' | 'desc';
 type DateFilter = 'all' | 'last7days' | 'last30days' | 'last90days' | 'custom';
 type ProgramType = 'all' | 'Application' | 'SystemComponent' | 'Update';
+type Architecture = 'all' | '32-bit' | '64-bit';
 
 export const ProgramList: React.FC = () => {
   const [programs, setPrograms] = useState<ProgramInfo[]>([]);
@@ -41,6 +43,8 @@ export const ProgramList: React.FC = () => {
   });
   const [programType, setProgramType] = useState<ProgramType>('all');
   const [isSearching, setIsSearching] = useState(false);
+  const [architecture, setArchitecture] = useState<Architecture>('all');
+  const [selectedProgram, setSelectedProgram] = useState<ProgramInfo | null>(null);
 
   const debouncedSearchTerm = useDebounce(searchTerm);
 
@@ -121,8 +125,9 @@ export const ProgramList: React.FC = () => {
         }
 
         const matchesType = programType === 'all' || program.program_type === programType;
+        const matchesArchitecture = architecture === 'all' || program.architecture === architecture;
 
-        return matchesSearch && matchesPublisher && matchesDate && matchesType;
+        return matchesSearch && matchesPublisher && matchesDate && matchesType && matchesArchitecture;
       })
       .sort((a, b) => {
         const aValue = a[sortField] || '';
@@ -140,6 +145,7 @@ export const ProgramList: React.FC = () => {
     programType,
     sortField,
     sortDirection,
+    architecture,
   ]);
 
   // Fetch programs
@@ -214,6 +220,16 @@ export const ProgramList: React.FC = () => {
             <option value="Update">Updates</option>
           </Select>
 
+          <Select
+            value={architecture}
+            onChange={(e) => setArchitecture(e.target.value as Architecture)}
+            width="150px"
+          >
+            <option value="all">All Architectures</option>
+            <option value="32-bit">32-bit</option>
+            <option value="64-bit">64-bit</option>
+          </Select>
+
           <Text ml="auto" color="gray.600" fontSize="sm">
             Showing {filteredAndSortedPrograms.length} of {programs.length} programs
           </Text>
@@ -275,16 +291,30 @@ export const ProgramList: React.FC = () => {
         {/* Program Grid */}
         <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={4}>
           {filteredAndSortedPrograms.map((program) => (
-            <Card key={program.registry_path}>
+            <Card 
+              key={program.registry_path}
+              cursor="pointer"
+              _hover={{ shadow: 'md' }}
+              onClick={() => setSelectedProgram(program)}
+            >
               <CardBody>
                 <Heading size="sm" mb={2}>{program.name}</Heading>
                 {program.publisher && <Text fontSize="sm">Publisher: {program.publisher}</Text>}
                 {program.version && <Text fontSize="sm">Version: {program.version}</Text>}
                 {program.install_date && <Text fontSize="sm">Installed: {program.install_date}</Text>}
+                <Text fontSize="sm" color="gray.500">{program.architecture}</Text>
               </CardBody>
             </Card>
           ))}
         </SimpleGrid>
+
+        {selectedProgram && (
+          <ProgramDetails
+            program={selectedProgram}
+            isOpen={!!selectedProgram}
+            onClose={() => setSelectedProgram(null)}
+          />
+        )}
       </Stack>
     </Box>
   );
