@@ -2,6 +2,8 @@ use winreg::enums::*;
 use winreg::RegKey;
 use serde::{Serialize, Deserialize};
 use std::path::Path;
+use std::fs;
+use base64::Engine;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ProgramInfo {
@@ -70,6 +72,71 @@ pub fn get_scan_progress() -> Result<ScanProgress, String> {
     })
 }
 
+#[tauri::command]
+pub fn debug_icon_paths() -> Result<Vec<DebugIconInfo>, String> {
+    let mut debug_info = Vec::new();
+    let hklm = RegKey::predef(HKEY_LOCAL_MACHINE);
+
+    if let Ok(uninstall_key) = hklm.open_subkey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall") {
+        let mut count = 0;
+        for key_result in uninstall_key.enum_keys() {
+            if let Ok(key_name) = key_result {
+                if let Ok(program_key) = uninstall_key.open_subkey(&key_name) {
+                    if let Ok(name) = program_key.get_value::<String, _>("DisplayName") {
+                        let raw_icon_path: Option<String> = program_key.get_value("DisplayIcon").ok();
+                        let processed_icon_path = raw_icon_path.as_ref().and_then(|path| extract_icon_path(path));
+                        
+                        let file_exists = processed_icon_path.as_ref().map(|p| Path::new(p).exists()).unwrap_or(false);
+                        
+                        debug_info.push(DebugIconInfo {
+                            program_name: name,
+                            raw_icon_path,
+                            processed_icon_path,
+                            file_exists,
+                        });
+                        
+                        count += 1;
+                        if count >= 10 { // Limit to first 10 for debugging
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    Ok(debug_info)
+}
+
+#[tauri::command]
+pub fn get_icon_as_base64(icon_path: String) -> Result<String, String> {
+    // Read the icon file and convert to base64
+    match fs::read(&icon_path) {
+        Ok(file_data) => {
+            let base64_data = base64::engine::general_purpose::STANDARD.encode(&file_data);
+            let extension = Path::new(&icon_path)
+                .extension()
+                .and_then(|ext| ext.to_str())
+                .unwrap_or("")
+                .to_lowercase();
+            
+            // Return data URL format
+            let mime_type = match extension.as_str() {
+                "ico" => "image/x-icon",
+                "png" => "image/png",
+                "jpg" | "jpeg" => "image/jpeg",
+                "exe" | "dll" => "image/x-icon", // Executables contain icon resources
+                _ => "application/octet-stream",
+            };
+            
+            Ok(format!("data:{};base64,{}", mime_type, base64_data))
+        }
+        Err(e) => {
+            Err(format!("Failed to read icon file {}: {}", icon_path, e))
+        }
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ScanProgress {
     pub total_keys: usize,
@@ -78,39 +145,87 @@ pub struct ScanProgress {
     pub current_operation: String,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct DebugIconInfo {
+    pub program_name: String,
+    pub raw_icon_path: Option<String>,
+    pub processed_icon_path: Option<String>,
+    pub file_exists: bool,
+}
+
 fn extract_icon_path(icon_path: &str) -> Option<String> {
     let parts: Vec<&str> = icon_path.split(',').collect();
     let path = parts[0].trim_matches('"');
     
-    // Check if the path exists
-    if !Path::new(path).exists() {
-        return None;
+    // Expand environment variables like %ProgramFiles%
+    let expanded_path = expand_environment_path(path);
+    
+    // Try multiple path variations
+    let paths_to_try = vec![
+        expanded_path.clone(),
+        path.to_string(),
+        // Try with and without quotes
+        path.trim_matches('"').to_string(),
+        // Try common variations
+        path.replace("%ProgramFiles%", r"C:\Program Files").to_string(),
+        path.replace("%ProgramFiles%", r"C:\Program Files (x86)").to_string(),
+    ];
+    
+    for test_path in &paths_to_try {
+        if Path::new(test_path).exists() {
+            let extension = Path::new(test_path)
+                .extension()
+                .and_then(|ext| ext.to_str())
+                .unwrap_or("");
+
+            match extension.to_lowercase().as_str() {
+                "ico" => {
+                    // Direct ICO file - return as is
+                    println!("Found ICO file: {}", test_path);
+                    return Some(test_path.clone());
+                }
+                "exe" | "dll" => {
+                    // For executable files, return the path
+                    println!("Found executable: {}", test_path);
+                    return Some(test_path.clone());
+                }
+                "lnk" => {
+                    // Shortcut file
+                    println!("Found shortcut: {}", test_path);
+                    return Some(test_path.clone());
+                }
+                _ => {
+                    // Unknown extension, but file exists
+                    println!("Found file with extension '{}': {}", extension, test_path);
+                    return Some(test_path.clone());
+                }
+            }
+        }
     }
     
-    let extension = Path::new(path)
-        .extension()
-        .and_then(|ext| ext.to_str())
-        .unwrap_or("");
+    println!("No valid icon path found for: {} (tried: {:?})", icon_path, paths_to_try);
+    None
+}
 
-    match extension.to_lowercase().as_str() {
-        "ico" => {
-            // Direct ICO file - return as is
-            Some(path.to_string())
-        }
-        "exe" | "dll" => {
-            // For executable files, we'll return the path and let the frontend handle icon extraction
-            // This is more reliable than trying to extract icons in the backend
-            Some(path.to_string())
-        }
-        "lnk" => {
-            // Shortcut file - could parse to get target, but for now just return the shortcut
-            Some(path.to_string())
-        }
-        _ => {
-            // Unknown extension, but file exists - return as is
-            Some(path.to_string())
-        }
+fn expand_environment_path(path: &str) -> String {
+    // Simple environment variable expansion for common Windows paths
+    let mut expanded = path.to_string();
+    
+    // Common Windows environment variables
+    let replacements = [
+        ("%ProgramFiles%", r"C:\Program Files"),
+        ("%ProgramFiles(x86)%", r"C:\Program Files (x86)"),
+        ("%ProgramData%", r"C:\ProgramData"),
+        ("%SystemRoot%", r"C:\Windows"),
+        ("%windir%", r"C:\Windows"),
+        ("%SystemDrive%", "C:"),
+    ];
+    
+    for (var, value) in &replacements {
+        expanded = expanded.replace(var, value);
     }
+    
+    expanded
 }
 
 fn scan_registry_key(key: &RegKey, programs: &mut Vec<ProgramInfo>, architecture: &str) {
