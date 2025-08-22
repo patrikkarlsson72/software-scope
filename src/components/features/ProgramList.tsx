@@ -27,6 +27,7 @@ import { ProgramInfo } from '../../types/ProgramInfo';
 import { useDebounce } from '../../hooks/useDebounce';
 import { ProgramDetails } from './ProgramDetails';
 import { ChevronDownIcon } from '@chakra-ui/icons';
+import { ProgramIcon } from '../common/ProgramIcon';
 
 type SortField = 'name' | 'publisher' | 'install_date' | 'version';
 type SortDirection = 'asc' | 'desc';
@@ -352,7 +353,14 @@ export const ProgramList: React.FC = () => {
               onClick={() => setSelectedProgram(program)}
             >
               <CardBody>
-                <Heading size="sm" mb={2}>{program.name}</Heading>
+                <HStack spacing={3} align="flex-start" mb={2}>
+                  <ProgramIcon 
+                    iconPath={program.icon_path} 
+                    programName={program.name} 
+                    size="24px" 
+                  />
+                  <Heading size="sm">{program.name}</Heading>
+                </HStack>
                 {program.publisher && <Text fontSize="sm">Publisher: {program.publisher}</Text>}
                 {program.version && <Text fontSize="sm">Version: {program.version}</Text>}
                 {program.install_date && <Text fontSize="sm">Installed: {program.install_date}</Text>}

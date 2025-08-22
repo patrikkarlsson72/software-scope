@@ -2,9 +2,8 @@ use winreg::enums::*;
 use winreg::RegKey;
 use serde::{Serialize, Deserialize};
 use std::path::Path;
-use std::process::Command;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ProgramInfo {
     // Basic Info
     pub name: String,                    // DisplayName
@@ -59,51 +58,58 @@ pub fn get_installed_programs() -> Result<Vec<ProgramInfo>, String> {
     Ok(programs)
 }
 
+#[tauri::command]
+pub fn get_scan_progress() -> Result<ScanProgress, String> {
+    // This would be implemented with a shared state in a real application
+    // For now, return a mock progress
+    Ok(ScanProgress {
+        total_keys: 0,
+        scanned_keys: 0,
+        is_complete: false,
+        current_operation: "Ready".to_string(),
+    })
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ScanProgress {
+    pub total_keys: usize,
+    pub scanned_keys: usize,
+    pub is_complete: bool,
+    pub current_operation: String,
+}
+
 fn extract_icon_path(icon_path: &str) -> Option<String> {
     let parts: Vec<&str> = icon_path.split(',').collect();
     let path = parts[0].trim_matches('"');
     
-    if Path::new(path).exists() {
-        let extension = Path::new(path)
-            .extension()
-            .and_then(|ext| ext.to_str())
-            .unwrap_or("");
+    // Check if the path exists
+    if !Path::new(path).exists() {
+        return None;
+    }
+    
+    let extension = Path::new(path)
+        .extension()
+        .and_then(|ext| ext.to_str())
+        .unwrap_or("");
 
-        match extension.to_lowercase().as_str() {
-            "ico" => Some(path.to_string()),
-            "exe" | "dll" => {
-                // For exe/dll files, we need to extract the icon
-                let temp_dir = std::env::temp_dir().join("software-scope-icons");
-                std::fs::create_dir_all(&temp_dir).ok()?;
-                
-                let icon_filename = format!("{}.ico", 
-                    Path::new(path).file_stem()?.to_str()?
-                );
-                let icon_path = temp_dir.join(icon_filename);
-                
-                let _index = parts.get(1).unwrap_or(&"0").parse::<i32>().unwrap_or(0);
-                
-                let ps_command = format!(
-                    "[System.Drawing.Icon]::ExtractAssociatedIcon('{}').ToBitmap().Save('{}')",
-                    path,
-                    icon_path.to_str()?
-                );
-                
-                Command::new("powershell")
-                    .args(&["-Command", &ps_command])
-                    .output()
-                    .ok()?;
-
-                if icon_path.exists() {
-                    Some(icon_path.to_str()?.to_string())
-                } else {
-                    None
-                }
-            }
-            _ => None
+    match extension.to_lowercase().as_str() {
+        "ico" => {
+            // Direct ICO file - return as is
+            Some(path.to_string())
         }
-    } else {
-        None
+        "exe" | "dll" => {
+            // For executable files, we'll return the path and let the frontend handle icon extraction
+            // This is more reliable than trying to extract icons in the backend
+            Some(path.to_string())
+        }
+        "lnk" => {
+            // Shortcut file - could parse to get target, but for now just return the shortcut
+            Some(path.to_string())
+        }
+        _ => {
+            // Unknown extension, but file exists - return as is
+            Some(path.to_string())
+        }
     }
 }
 

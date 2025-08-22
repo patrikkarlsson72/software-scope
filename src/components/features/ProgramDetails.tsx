@@ -1,3 +1,4 @@
+import React, { useState } from 'react';
 import {
   Modal,
   ModalOverlay,
@@ -5,31 +6,29 @@ import {
   ModalHeader,
   ModalBody,
   ModalCloseButton,
+  Button,
   Text,
   VStack,
-  Divider,
+  HStack,
   Badge,
   Grid,
   GridItem,
-  Box,
-  Heading,
-  Button,
-  HStack,
-  useToast,
-  Image,
-  Link,
-  Icon,
-  Collapse,
   Accordion,
   AccordionItem,
   AccordionButton,
   AccordionPanel,
   AccordionIcon,
+  Box,
+  Heading,
+  useToast,
+  Link,
+  Collapse,
+  Divider,
 } from '@chakra-ui/react';
-import { ExternalLinkIcon, ChevronDownIcon, ChevronUpIcon } from '@chakra-ui/icons';
 import { ProgramInfo } from '../../types/ProgramInfo';
-import { FaWindowMaximize } from 'react-icons/fa';
-import { useState } from 'react';
+import { ExternalLinkIcon, ChevronDownIcon, ChevronUpIcon } from '@chakra-ui/icons';
+import { ProgramIcon } from '../common/ProgramIcon';
+
 
 interface ProgramDetailsProps {
   program: ProgramInfo;
@@ -57,19 +56,11 @@ export const ProgramDetails: React.FC<ProgramDetailsProps> = ({ program, isOpen,
       <ModalContent maxHeight="90vh" overflowY="auto">
         <ModalHeader>
           <HStack spacing={4} align="flex-start">
-            <Box width="32px" height="32px" display="flex" alignItems="center" justifyContent="center">
-              {program.icon_path ? (
-                <Image
-                  src={`file://${program.icon_path}`}
-                  alt={program.name}
-                  boxSize="32px"
-                  objectFit="contain"
-                  fallback={<Icon as={FaWindowMaximize} boxSize="32px" color="gray.500" />}
-                />
-              ) : (
-                <Icon as={FaWindowMaximize} boxSize="32px" color="gray.500" />
-              )}
-            </Box>
+            <ProgramIcon 
+              iconPath={program.icon_path} 
+              programName={program.name} 
+              size="32px" 
+            />
             <VStack align="stretch" spacing={2}>
               <Text>{program.name}</Text>
               <HStack spacing={2}>

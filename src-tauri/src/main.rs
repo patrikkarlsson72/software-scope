@@ -9,7 +9,8 @@ fn main() {
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
             get_installed_programs,
-            export_programs
+            export_programs,
+            get_scan_progress
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
