@@ -1,44 +1,44 @@
 use winreg::enums::*;
 use winreg::RegKey;
-use serde::Serialize;
+use serde::{Serialize, Deserialize};
 use std::path::Path;
 use std::process::Command;
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct ProgramInfo {
     // Basic Info
-    name: String,                    // DisplayName
-    registry_name: String,           // Registry key name
-    version: Option<String>,         // DisplayVersion
-    registry_time: Option<String>,   // NEW: InstallTime
-    install_date: Option<String>,    // InstallDate
-    installed_for: Option<String>,   // NEW: Based on registry path (32/64 bit)
-    install_location: Option<String>, // InstallLocation
-    install_source: Option<String>,  // NEW: InstallSource
-    install_folder_created: Option<String>, // NEW
-    install_folder_modified: Option<String>, // NEW
-    install_folder_owner: Option<String>,    // NEW
-    publisher: Option<String>,       // Publisher
-    uninstall_string: Option<String>, // UninstallString
-    change_install_string: Option<String>, // NEW: ModifyPath
-    quiet_uninstall_string: Option<String>, // NEW: QuietUninstallString
-    comments: Option<String>,        // Comments
-    about_url: Option<String>,       // URLInfoAbout
-    update_info_url: Option<String>, // NEW: URLUpdateInfo
-    help_link: Option<String>,       // NEW: HelpLink
-    install_source_path: Option<String>, // NEW
-    installer_name: Option<String>,  // NEW
-    release_type: Option<String>,    // NEW
-    icon_path: Option<String>,       // DisplayIcon
-    msi_filename: Option<String>,    // NEW
-    estimated_size: Option<u32>,     // NEW: EstimatedSize
-    attributes: Option<String>,      // NEW
-    language: Option<String>,        // NEW
-    parent_key_name: Option<String>, // NEW
-    registry_path: String,
-    program_type: String,
-    is_windows_installer: bool,
-    architecture: String,
+    pub name: String,                    // DisplayName
+    pub registry_name: String,           // Registry key name
+    pub version: Option<String>,         // DisplayVersion
+    pub registry_time: Option<String>,   // NEW: InstallTime
+    pub install_date: Option<String>,    // InstallDate
+    pub installed_for: Option<String>,   // NEW: Based on registry path (32/64 bit)
+    pub install_location: Option<String>, // InstallLocation
+    pub install_source: Option<String>,  // NEW: InstallSource
+    pub install_folder_created: Option<String>, // NEW
+    pub install_folder_modified: Option<String>, // NEW
+    pub install_folder_owner: Option<String>,    // NEW
+    pub publisher: Option<String>,       // Publisher
+    pub uninstall_string: Option<String>, // UninstallString
+    pub change_install_string: Option<String>, // NEW: ModifyPath
+    pub quiet_uninstall_string: Option<String>, // NEW: QuietUninstallString
+    pub comments: Option<String>,        // Comments
+    pub about_url: Option<String>,       // URLInfoAbout
+    pub update_info_url: Option<String>, // NEW: URLUpdateInfo
+    pub help_link: Option<String>,       // NEW: HelpLink
+    pub install_source_path: Option<String>, // NEW
+    pub installer_name: Option<String>,  // NEW
+    pub release_type: Option<String>,    // NEW
+    pub icon_path: Option<String>,       // DisplayIcon
+    pub msi_filename: Option<String>,    // NEW
+    pub estimated_size: Option<u32>,     // NEW: EstimatedSize
+    pub attributes: Option<String>,      // NEW
+    pub language: Option<String>,        // NEW
+    pub parent_key_name: Option<String>, // NEW
+    pub registry_path: String,
+    pub program_type: String,
+    pub is_windows_installer: bool,
+    pub architecture: String,
 }
 
 #[tauri::command]

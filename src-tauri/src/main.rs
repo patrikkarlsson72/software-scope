@@ -3,10 +3,14 @@
 
 mod commands;
 use commands::registry::*;
+use commands::export::*;
 
 fn main() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![get_installed_programs])
+        .invoke_handler(tauri::generate_handler![
+            get_installed_programs,
+            export_programs
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

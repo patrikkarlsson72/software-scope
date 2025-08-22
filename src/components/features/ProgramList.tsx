@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { invoke } from '@tauri-apps/api/tauri';
+import { save } from '@tauri-apps/api/dialog';
 import { 
   Box,
   Heading,
@@ -15,11 +16,17 @@ import {
   Card,
   CardBody,
   ButtonGroup,
-  Button
+  Button,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
+  useToast,
 } from '@chakra-ui/react';
 import { ProgramInfo } from '../../types/ProgramInfo';
 import { useDebounce } from '../../hooks/useDebounce';
 import { ProgramDetails } from './ProgramDetails';
+import { ChevronDownIcon } from '@chakra-ui/icons';
 
 type SortField = 'name' | 'publisher' | 'install_date' | 'version';
 type SortDirection = 'asc' | 'desc';
@@ -47,6 +54,7 @@ export const ProgramList: React.FC = () => {
   const [selectedProgram, setSelectedProgram] = useState<ProgramInfo | null>(null);
 
   const debouncedSearchTerm = useDebounce(searchTerm);
+  const toast = useToast();
 
   const publishers = useMemo(() => {
     const uniquePublishers = new Set(
@@ -173,12 +181,58 @@ export const ProgramList: React.FC = () => {
     }
   };
 
+  const handleExport = async (format: 'CSV' | 'HTML' | 'XML' | 'TXT') => {
+    try {
+      const filePath = await save({
+        filters: [{
+          name: format,
+          extensions: [format.toLowerCase()]
+        }]
+      });
+
+      if (filePath) {
+        await invoke('export_programs', {
+          programs: filteredAndSortedPrograms,
+          format,
+          filePath
+        });
+
+        toast({
+          title: 'Export Successful',
+          description: `Programs exported to ${filePath}`,
+          status: 'success',
+          duration: 3000,
+        });
+      }
+    } catch (error) {
+      toast({
+        title: 'Export Failed',
+        description: error instanceof Error ? error.message : 'Unknown error occurred',
+        status: 'error',
+        duration: 3000,
+      });
+    }
+  };
+
   if (loading) return <div>Loading installed programs...</div>;
   if (error) return <div>Error: {error}</div>;
 
   return (
     <Box p={5}>
-      <Heading size="lg" mb={6}>Installed Programs</Heading>
+      <HStack justify="space-between" mb={6}>
+        <Heading size="lg">Installed Programs</Heading>
+        <Menu>
+          <MenuButton as={Button} rightIcon={<ChevronDownIcon />}>
+            Export
+          </MenuButton>
+          <MenuList>
+            <MenuItem onClick={() => handleExport('CSV')}>Export as CSV</MenuItem>
+            <MenuItem onClick={() => handleExport('HTML')}>Export as HTML</MenuItem>
+            <MenuItem onClick={() => handleExport('XML')}>Export as XML</MenuItem>
+            <MenuItem onClick={() => handleExport('TXT')}>Export as Text</MenuItem>
+          </MenuList>
+        </Menu>
+      </HStack>
       
       <Stack spacing={4}>
         <HStack spacing={4} align="flex-start">
