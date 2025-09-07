@@ -57,24 +57,27 @@ class IconService {
   // Get fallback icon for a program
   async getFallbackIcon(programName: string, publisher?: string, programType?: string): Promise<string | null> {
     try {
+      console.log(`🔍 Looking for icon: "${programName}" (Publisher: "${publisher}", Type: "${programType}")`);
+      
       // Try to find a specific icon for this program
       const iconInfo = findIconForProgram(programName, publisher);
       
       if (iconInfo) {
-        console.log(`Found specific icon for ${programName}: ${iconInfo.iconUrl}`);
+        console.log(`✅ Found specific icon for ${programName}: ${iconInfo.iconUrl}`);
         return await this.downloadIconFromUrl(iconInfo.iconUrl);
       }
 
       // Fall back to generic icon based on program type
       if (programType) {
         const genericIconUrl = getGenericIconForType(programType);
-        console.log(`Using generic icon for ${programName} (${programType}): ${genericIconUrl}`);
+        console.log(`🔄 Using generic icon for ${programName} (${programType}): ${genericIconUrl}`);
         return await this.downloadIconFromUrl(genericIconUrl);
       }
 
+      console.log(`❌ No icon found for ${programName}`);
       return null;
     } catch (error) {
-      console.error(`Failed to get fallback icon for ${programName}:`, error);
+      console.error(`❌ Failed to get fallback icon for ${programName}:`, error);
       return null;
     }
   }

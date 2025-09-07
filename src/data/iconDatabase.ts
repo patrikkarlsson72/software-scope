@@ -270,37 +270,69 @@ export const COMMON_APP_ICONS: IconInfo[] = [
     name: "HP Connection Optimizer",
     publisher: "HP Inc.",
     iconUrl: "https://cdn.jsdelivr.net/gh/simple-icons/simple-icons@develop/icons/hp.svg",
-    keywords: ["hp connection optimizer", "hp optimizer"]
+    keywords: ["hp connection optimizer", "hp optimizer", "connection optimizer"]
   },
   {
     name: "HP Documentation",
     publisher: "HP Inc.",
     iconUrl: "https://cdn.jsdelivr.net/gh/simple-icons/simple-icons@develop/icons/hp.svg",
-    keywords: ["hp documentation", "hp docs"]
+    keywords: ["hp documentation", "hp docs", "documentation"]
   },
   {
     name: "HP Notifications",
     publisher: "HP",
     iconUrl: "https://cdn.jsdelivr.net/gh/simple-icons/simple-icons@develop/icons/hp.svg",
-    keywords: ["hp notifications", "hp notify"]
+    keywords: ["hp notifications", "hp notify", "notifications"]
   },
   {
     name: "HP Security Update Service",
     publisher: "HP Inc.",
     iconUrl: "https://cdn.jsdelivr.net/gh/simple-icons/simple-icons@develop/icons/hp.svg",
-    keywords: ["hp security", "hp security update"]
+    keywords: ["hp security", "hp security update", "security update service"]
   },
   {
     name: "HP Sure Recover",
     publisher: "HP Inc.",
     iconUrl: "https://cdn.jsdelivr.net/gh/simple-icons/simple-icons@develop/icons/hp.svg",
-    keywords: ["hp sure recover", "sure recover"]
+    keywords: ["hp sure recover", "sure recover", "recover"]
   },
   {
     name: "HP Wolf Security",
     publisher: "HP Inc.",
     iconUrl: "https://cdn.jsdelivr.net/gh/simple-icons/simple-icons@develop/icons/hp.svg",
-    keywords: ["hp wolf security", "wolf security"]
+    keywords: ["hp wolf security", "wolf security", "wolf"]
+  },
+  {
+    name: "HP Wolf Security - Console",
+    publisher: "HP Inc.",
+    iconUrl: "https://cdn.jsdelivr.net/gh/simple-icons/simple-icons@develop/icons/hp.svg",
+    keywords: ["hp wolf security console", "wolf security console", "wolf console"]
+  },
+  {
+    name: "HP Sure Run Module",
+    publisher: "HP Inc.",
+    iconUrl: "https://cdn.jsdelivr.net/gh/simple-icons/simple-icons@develop/icons/hp.svg",
+    keywords: ["hp sure run", "sure run module", "sure run"]
+  },
+  {
+    name: "HP System Default Settings",
+    publisher: "HP Inc.",
+    iconUrl: "https://cdn.jsdelivr.net/gh/simple-icons/simple-icons@develop/icons/hp.svg",
+    keywords: ["hp system default", "system default settings", "default settings"]
+  },
+
+  // Microsoft System Components
+  {
+    name: "Application Verifier x64 External Package",
+    publisher: "Microsoft Corporation",
+    iconUrl: "https://cdn.jsdelivr.net/gh/simple-icons/simple-icons@develop/icons/microsoft.svg",
+    keywords: ["application verifier", "verifier", "microsoft verifier"]
+  },
+  {
+    name: "DiagnosticsHub_CollectionService",
+    publisher: "Microsoft Corporation",
+    iconUrl: "https://cdn.jsdelivr.net/gh/simple-icons/simple-icons@develop/icons/microsoft.svg",
+    keywords: ["diagnostics hub", "collection service", "diagnostics"]
   }
 ];
 
@@ -317,23 +349,44 @@ export function findIconForProgram(programName: string, publisher?: string): Ico
 
   if (match) return match;
 
-  // Then try publisher match
-  if (publisher) {
-    match = COMMON_APP_ICONS.find(icon => 
-      icon.publisher?.toLowerCase() === pub
-    );
-    if (match) return match;
-  }
-
-  // Finally, try partial keyword matching
+  // Then try partial keyword matching (more flexible)
   match = COMMON_APP_ICONS.find(icon => 
-    icon.keywords.some(keyword => 
-      name.includes(keyword.toLowerCase()) || 
-      keyword.toLowerCase().includes(name)
-    )
+    icon.keywords.some(keyword => {
+      const keywordLower = keyword.toLowerCase();
+      return name.includes(keywordLower) || 
+             keywordLower.includes(name) ||
+             // Check if any word in the program name matches any keyword
+             name.split(' ').some(word => 
+               word.length > 2 && (
+                 keywordLower.includes(word) || 
+                 word.includes(keywordLower)
+               )
+             );
+    })
   );
 
-  return match || null;
+  if (match) return match;
+
+  // Try publisher-based matching for known publishers
+  if (publisher) {
+    // HP programs
+    if (pub.includes('hp')) {
+      match = COMMON_APP_ICONS.find(icon => 
+        icon.publisher?.toLowerCase().includes('hp')
+      );
+      if (match) return match;
+    }
+    
+    // Microsoft programs
+    if (pub.includes('microsoft')) {
+      match = COMMON_APP_ICONS.find(icon => 
+        icon.publisher?.toLowerCase().includes('microsoft')
+      );
+      if (match) return match;
+    }
+  }
+
+  return null;
 }
 
 // Function to get a generic icon based on program type

@@ -55,53 +55,61 @@ export const ProgramIcon: React.FC<ProgramIconProps> = ({
     return () => observer.disconnect();
   }, [lazy]);
 
-  // Load icon data when iconPath changes and component is visible
+  // Load icon data when component is visible
   useEffect(() => {
-    if (iconPath && shouldDisplayIcon(iconPath) && isVisible) {
-      loadIconData(iconPath);
+    if (isVisible) {
+      loadIconData(iconPath || '');
     }
-  }, [iconPath, isVisible]);
+  }, [iconPath, isVisible, programName, publisher, programType]);
 
   const loadIconData = async (path: string) => {
-    // Check cache first
-    const cached = getCachedIcon(path);
-    if (cached) {
-      setIconData(cached);
-      return;
-    }
-
     setIsLoading(true);
     setHasError(false);
 
     try {
-      // Use Tauri command to read file as base64
-      const base64Data: string = await invoke('get_icon_as_base64', { iconPath: path });
-      setIconData(base64Data);
-      setCachedIcon(path, base64Data);
-      console.log(`✅ Local icon loaded successfully: ${path}`);
-    } catch (error) {
-      console.error(`❌ Failed to load local icon ${path}:`, error);
-      
-      // Try fallback icon service
-      try {
-        console.log(`🔄 Trying fallback icon for: ${programName}`);
-        const fallbackIcon = await iconService.getFallbackIcon(programName, publisher, programType);
-        if (fallbackIcon) {
-          setIconData(fallbackIcon);
-          console.log(`✅ Fallback icon loaded successfully for: ${programName}`);
-        } else {
-          setHasError(true);
-        }
-      } catch (fallbackError) {
-        console.error(`❌ Failed to load fallback icon for ${programName}:`, fallbackError);
-        setHasError(true);
+      // First, try fallback icon service for better icon matching
+      console.log(`🔄 Trying fallback icon for: ${programName} (Publisher: ${publisher})`);
+      const fallbackIcon = await iconService.getFallbackIcon(programName, publisher, programType);
+      if (fallbackIcon) {
+        setIconData(fallbackIcon);
+        console.log(`✅ Fallback icon loaded successfully for: ${programName}`);
+        setIsLoading(false);
+        return;
       }
+
+      // If no fallback icon found, try local icon
+      if (path && shouldDisplayIcon(path)) {
+        // Check cache first
+        const cached = getCachedIcon(path);
+        if (cached) {
+          setIconData(cached);
+          setIsLoading(false);
+          return;
+        }
+
+        try {
+          // Use Tauri command to read file as base64
+          const base64Data: string = await invoke('get_icon_as_base64', { iconPath: path });
+          setIconData(base64Data);
+          setCachedIcon(path, base64Data);
+          console.log(`✅ Local icon loaded successfully: ${path}`);
+        } catch (error) {
+          console.error(`❌ Failed to load local icon ${path}:`, error);
+          // Don't set hasError here, let it fall through to generic fallback
+        }
+      }
+      
+      // If we reach here, no icon was found - show generic fallback
+      setHasError(true);
+    } catch (fallbackError) {
+      console.error(`❌ Failed to load fallback icon for ${programName}:`, fallbackError);
+      setHasError(true);
     } finally {
       setIsLoading(false);
     }
   };
 
-  if (!iconPath || hasError || !shouldDisplayIcon(iconPath)) {
+  if (hasError || (!iconData && !isLoading)) {
     if (!showFallback) return null;
     return (
       <Box width={size} height={size} display="flex" alignItems="center" justifyContent="center">
