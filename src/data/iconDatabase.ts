@@ -8,44 +8,44 @@ export interface IconInfo {
   keywords: string[]; // Alternative names or keywords to match
 }
 
-// Common applications with their icon URLs
-// Using reliable CDN sources for icons
+// Common applications with their icon paths
+// Using local assets for better performance and reliability
 export const COMMON_APP_ICONS: IconInfo[] = [
   // Microsoft Applications
   {
     name: "Microsoft Office",
     publisher: "Microsoft Corporation",
-    iconUrl: "https://cdn.jsdelivr.net/gh/simple-icons/simple-icons@develop/icons/microsoftoffice.svg",
+    iconUrl: "/src/assets/icons/office.svg",
     keywords: ["office", "word", "excel", "powerpoint", "outlook", "access", "publisher", "visio"]
   },
   {
     name: "Microsoft Visual Studio",
     publisher: "Microsoft Corporation", 
-    iconUrl: "https://cdn.jsdelivr.net/gh/simple-icons/simple-icons@develop/icons/visualstudio.svg",
+    iconUrl: "/src/assets/icons/microsoft.svg",
     keywords: ["visual studio", "vs", "microsoft visual studio"]
   },
   {
     name: "Microsoft Edge",
     publisher: "Microsoft Corporation",
-    iconUrl: "https://cdn.jsdelivr.net/gh/simple-icons/simple-icons@develop/icons/microsoftedge.svg",
+    iconUrl: "/src/assets/icons/edge.svg",
     keywords: ["edge", "microsoft edge", "msedge"]
   },
   {
     name: "Microsoft Teams",
     publisher: "Microsoft Corporation",
-    iconUrl: "https://cdn.jsdelivr.net/gh/simple-icons/simple-icons@develop/icons/microsoftteams.svg",
+    iconUrl: "/src/assets/icons/teams.svg",
     keywords: ["teams", "microsoft teams"]
   },
   {
     name: "OneDrive",
     publisher: "Microsoft Corporation",
-    iconUrl: "https://cdn.jsdelivr.net/gh/simple-icons/simple-icons@develop/icons/onedrive.svg",
+    iconUrl: "/src/assets/icons/onedrive.svg",
     keywords: ["onedrive", "microsoft onedrive"]
   },
   {
     name: "Skype",
     publisher: "Microsoft Corporation",
-    iconUrl: "https://cdn.jsdelivr.net/gh/simple-icons/simple-icons@develop/icons/skype.svg",
+    iconUrl: "/src/assets/icons/microsoft.svg",
     keywords: ["skype"]
   },
 
@@ -53,19 +53,19 @@ export const COMMON_APP_ICONS: IconInfo[] = [
   {
     name: "Google Chrome",
     publisher: "Google LLC",
-    iconUrl: "https://cdn.jsdelivr.net/gh/simple-icons/simple-icons@develop/icons/googlechrome.svg",
+    iconUrl: "/src/assets/icons/chrome.svg",
     keywords: ["chrome", "google chrome"]
   },
   {
     name: "Google Drive",
     publisher: "Google LLC",
-    iconUrl: "https://cdn.jsdelivr.net/gh/simple-icons/simple-icons@develop/icons/googledrive.svg",
+    iconUrl: "/src/assets/icons/chrome.svg",
     keywords: ["google drive", "drive"]
   },
   {
     name: "Google Earth",
     publisher: "Google LLC",
-    iconUrl: "https://cdn.jsdelivr.net/gh/simple-icons/simple-icons@develop/icons/googleearth.svg",
+    iconUrl: "/src/assets/icons/chrome.svg",
     keywords: ["google earth", "earth"]
   },
 
@@ -73,25 +73,25 @@ export const COMMON_APP_ICONS: IconInfo[] = [
   {
     name: "Adobe Acrobat",
     publisher: "Adobe Inc.",
-    iconUrl: "https://cdn.jsdelivr.net/gh/simple-icons/simple-icons@develop/icons/adobeacrobatreader.svg",
+    iconUrl: "/src/assets/icons/adobe.svg",
     keywords: ["acrobat", "adobe acrobat", "pdf", "adobe reader"]
   },
   {
     name: "Adobe Photoshop",
     publisher: "Adobe Inc.",
-    iconUrl: "https://cdn.jsdelivr.net/gh/simple-icons/simple-icons@develop/icons/adobephotoshop.svg",
+    iconUrl: "/src/assets/icons/adobe.svg",
     keywords: ["photoshop", "adobe photoshop", "ps"]
   },
   {
     name: "Adobe Illustrator",
     publisher: "Adobe Inc.",
-    iconUrl: "https://cdn.jsdelivr.net/gh/simple-icons/simple-icons@develop/icons/adobeillustrator.svg",
+    iconUrl: "/src/assets/icons/adobe.svg",
     keywords: ["illustrator", "adobe illustrator", "ai"]
   },
   {
     name: "Adobe Premiere Pro",
     publisher: "Adobe Inc.",
-    iconUrl: "https://cdn.jsdelivr.net/gh/simple-icons/simple-icons@develop/icons/adobepremierepro.svg",
+    iconUrl: "/src/assets/icons/adobe.svg",
     keywords: ["premiere", "adobe premiere", "premiere pro"]
   },
 
@@ -99,37 +99,37 @@ export const COMMON_APP_ICONS: IconInfo[] = [
   {
     name: "Visual Studio Code",
     publisher: "Microsoft Corporation",
-    iconUrl: "https://cdn.jsdelivr.net/gh/simple-icons/simple-icons@develop/icons/visualstudiocode.svg",
+    iconUrl: "/src/assets/icons/vscode.svg",
     keywords: ["vscode", "visual studio code", "code"]
   },
   {
     name: "Git",
     publisher: "The Git Development Community",
-    iconUrl: "https://cdn.jsdelivr.net/gh/simple-icons/simple-icons@develop/icons/git.svg",
+    iconUrl: "/src/assets/icons/git.svg",
     keywords: ["git"]
   },
   {
     name: "GitHub Desktop",
     publisher: "GitHub Inc.",
-    iconUrl: "https://cdn.jsdelivr.net/gh/simple-icons/simple-icons@develop/icons/github.svg",
+    iconUrl: "/src/assets/icons/git.svg",
     keywords: ["github desktop", "github"]
   },
   {
     name: "Node.js",
     publisher: "Node.js Foundation",
-    iconUrl: "https://cdn.jsdelivr.net/gh/simple-icons/simple-icons@develop/icons/nodedotjs.svg",
+    iconUrl: "/src/assets/icons/microsoft.svg",
     keywords: ["node", "nodejs", "node.js"]
   },
   {
     name: "Python",
     publisher: "Python Software Foundation",
-    iconUrl: "https://cdn.jsdelivr.net/gh/simple-icons/simple-icons@develop/icons/python.svg",
+    iconUrl: "/src/assets/icons/microsoft.svg",
     keywords: ["python"]
   },
   {
     name: "Docker",
     publisher: "Docker Inc.",
-    iconUrl: "https://cdn.jsdelivr.net/gh/simple-icons/simple-icons@develop/icons/docker.svg",
+    iconUrl: "/src/assets/icons/microsoft.svg",
     keywords: ["docker"]
   },
 
@@ -137,25 +137,25 @@ export const COMMON_APP_ICONS: IconInfo[] = [
   {
     name: "Mozilla Firefox",
     publisher: "Mozilla Corporation",
-    iconUrl: "https://cdn.jsdelivr.net/gh/simple-icons/simple-icons@develop/icons/firefox.svg",
+    iconUrl: "/src/assets/icons/firefox.svg",
     keywords: ["firefox", "mozilla firefox"]
   },
   {
     name: "Brave",
     publisher: "Brave Software Inc",
-    iconUrl: "https://cdn.jsdelivr.net/gh/simple-icons/simple-icons@develop/icons/brave.svg",
+    iconUrl: "/src/assets/icons/brave.svg",
     keywords: ["brave"]
   },
   {
     name: "Opera",
     publisher: "Opera Software",
-    iconUrl: "https://cdn.jsdelivr.net/gh/simple-icons/simple-icons@develop/icons/opera.svg",
+    iconUrl: "/src/assets/icons/chrome.svg",
     keywords: ["opera"]
   },
   {
     name: "Vivaldi",
     publisher: "Vivaldi Technologies",
-    iconUrl: "https://cdn.jsdelivr.net/gh/simple-icons/simple-icons@develop/icons/vivaldi.svg",
+    iconUrl: "/src/assets/icons/chrome.svg",
     keywords: ["vivaldi"]
   },
 
@@ -163,19 +163,19 @@ export const COMMON_APP_ICONS: IconInfo[] = [
   {
     name: "VLC Media Player",
     publisher: "VideoLAN",
-    iconUrl: "https://cdn.jsdelivr.net/gh/simple-icons/simple-icons@develop/icons/vlcmediaplayer.svg",
+    iconUrl: "/src/assets/icons/microsoft.svg",
     keywords: ["vlc", "vlc media player"]
   },
   {
     name: "Spotify",
     publisher: "Spotify AB",
-    iconUrl: "https://cdn.jsdelivr.net/gh/simple-icons/simple-icons@develop/icons/spotify.svg",
+    iconUrl: "/src/assets/icons/microsoft.svg",
     keywords: ["spotify"]
   },
   {
     name: "Winamp",
     publisher: "Nullsoft",
-    iconUrl: "https://cdn.jsdelivr.net/gh/simple-icons/simple-icons@develop/icons/winamp.svg",
+    iconUrl: "/src/assets/icons/microsoft.svg",
     keywords: ["winamp"]
   },
 
@@ -183,25 +183,25 @@ export const COMMON_APP_ICONS: IconInfo[] = [
   {
     name: "Discord",
     publisher: "Discord Inc.",
-    iconUrl: "https://cdn.jsdelivr.net/gh/simple-icons/simple-icons@develop/icons/discord.svg",
+    iconUrl: "/src/assets/icons/discord.svg",
     keywords: ["discord"]
   },
   {
     name: "Slack",
     publisher: "Slack Technologies",
-    iconUrl: "https://cdn.jsdelivr.net/gh/simple-icons/simple-icons@develop/icons/slack.svg",
+    iconUrl: "/src/assets/icons/microsoft.svg",
     keywords: ["slack"]
   },
   {
     name: "Zoom",
     publisher: "Zoom Video Communications",
-    iconUrl: "https://cdn.jsdelivr.net/gh/simple-icons/simple-icons@develop/icons/zoom.svg",
+    iconUrl: "/src/assets/icons/microsoft.svg",
     keywords: ["zoom"]
   },
   {
     name: "WhatsApp",
     publisher: "WhatsApp Inc.",
-    iconUrl: "https://cdn.jsdelivr.net/gh/simple-icons/simple-icons@develop/icons/whatsapp.svg",
+    iconUrl: "/src/assets/icons/microsoft.svg",
     keywords: ["whatsapp"]
   },
 
@@ -209,19 +209,19 @@ export const COMMON_APP_ICONS: IconInfo[] = [
   {
     name: "Steam",
     publisher: "Valve Corporation",
-    iconUrl: "https://cdn.jsdelivr.net/gh/simple-icons/simple-icons@develop/icons/steam.svg",
+    iconUrl: "/src/assets/icons/steam.svg",
     keywords: ["steam"]
   },
   {
     name: "Epic Games",
     publisher: "Epic Games Inc.",
-    iconUrl: "https://cdn.jsdelivr.net/gh/simple-icons/simple-icons@develop/icons/epicgames.svg",
+    iconUrl: "/src/assets/icons/microsoft.svg",
     keywords: ["epic games", "epic launcher"]
   },
   {
     name: "Origin",
     publisher: "Electronic Arts",
-    iconUrl: "https://cdn.jsdelivr.net/gh/simple-icons/simple-icons@develop/icons/origin.svg",
+    iconUrl: "/src/assets/icons/microsoft.svg",
     keywords: ["origin", "ea origin"]
   },
 
@@ -229,25 +229,25 @@ export const COMMON_APP_ICONS: IconInfo[] = [
   {
     name: "7-Zip",
     publisher: "Igor Pavlov",
-    iconUrl: "https://cdn.jsdelivr.net/gh/simple-icons/simple-icons@develop/icons/7zip.svg",
+    iconUrl: "/src/assets/icons/microsoft.svg",
     keywords: ["7-zip", "7zip"]
   },
   {
     name: "WinRAR",
     publisher: "RARLAB",
-    iconUrl: "https://cdn.jsdelivr.net/gh/simple-icons/simple-icons@develop/icons/winrar.svg",
+    iconUrl: "/src/assets/icons/microsoft.svg",
     keywords: ["winrar", "rar"]
   },
   {
     name: "Notepad++",
     publisher: "Notepad++ Team",
-    iconUrl: "https://cdn.jsdelivr.net/gh/simple-icons/simple-icons@develop/icons/notepadplusplus.svg",
+    iconUrl: "/src/assets/icons/microsoft.svg",
     keywords: ["notepad++", "notepad plus plus"]
   },
   {
     name: "PuTTY",
     publisher: "Simon Tatham",
-    iconUrl: "https://cdn.jsdelivr.net/gh/simple-icons/simple-icons@develop/icons/putty.svg",
+    iconUrl: "/src/assets/icons/microsoft.svg",
     keywords: ["putty"]
   },
 
@@ -255,13 +255,13 @@ export const COMMON_APP_ICONS: IconInfo[] = [
   {
     name: "Windows Defender",
     publisher: "Microsoft Corporation",
-    iconUrl: "https://cdn.jsdelivr.net/gh/simple-icons/simple-icons@develop/icons/microsoft.svg",
+    iconUrl: "/src/assets/icons/microsoft.svg",
     keywords: ["windows defender", "defender", "microsoft defender"]
   },
   {
     name: "Malwarebytes",
     publisher: "Malwarebytes Inc.",
-    iconUrl: "https://cdn.jsdelivr.net/gh/simple-icons/simple-icons@develop/icons/malwarebytes.svg",
+    iconUrl: "/src/assets/icons/microsoft.svg",
     keywords: ["malwarebytes"]
   },
 
@@ -393,12 +393,12 @@ export function findIconForProgram(programName: string, publisher?: string): Ico
 export function getGenericIconForType(programType: string): string {
   switch (programType.toLowerCase()) {
     case 'application':
-      return "https://cdn.jsdelivr.net/gh/simple-icons/simple-icons@develop/icons/windows.svg";
+      return "/src/assets/icons/microsoft.svg";
     case 'systemcomponent':
-      return "https://cdn.jsdelivr.net/gh/simple-icons/simple-icons@develop/icons/microsoft.svg";
+      return "/src/assets/icons/microsoft.svg";
     case 'update':
-      return "https://cdn.jsdelivr.net/gh/simple-icons/simple-icons@develop/icons/microsoft.svg";
+      return "/src/assets/icons/microsoft.svg";
     default:
-      return "https://cdn.jsdelivr.net/gh/simple-icons/simple-icons@develop/icons/windows.svg";
+      return "/src/assets/icons/microsoft.svg";
   }
 }

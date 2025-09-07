@@ -32,7 +32,7 @@ class IconService {
     };
   }
 
-  // Download icon from URL and convert to base64
+  // Load icon from URL or local path and convert to base64
   async downloadIconFromUrl(url: string): Promise<string> {
     try {
       // Check cache first
@@ -41,15 +41,24 @@ class IconService {
         return cached;
       }
 
-      // Use Tauri command to download and convert to base64
-      const base64Data: string = await invoke('download_icon_from_url', { url });
-      
-      // Cache the result
-      this.setCachedFallbackIcon(url, base64Data, 'cdn');
+      let base64Data: string;
+
+      // Check if it's a local asset path
+      if (url.startsWith('/src/assets/')) {
+        // For local assets, we need to read the file directly
+        // Convert the path to a proper file path
+        const filePath = url.replace('/src/assets/', 'src/assets/');
+        base64Data = await invoke('get_icon_as_base64', { iconPath: filePath });
+        this.setCachedFallbackIcon(url, base64Data, 'generic');
+      } else {
+        // Use Tauri command to download and convert to base64
+        base64Data = await invoke('download_icon_from_url', { url });
+        this.setCachedFallbackIcon(url, base64Data, 'cdn');
+      }
       
       return base64Data;
     } catch (error) {
-      console.error(`Failed to download icon from ${url}:`, error);
+      console.error(`Failed to load icon from ${url}:`, error);
       throw error;
     }
   }
