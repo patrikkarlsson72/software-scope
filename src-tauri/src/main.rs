@@ -4,6 +4,7 @@
 mod commands;
 use commands::registry::*;
 use commands::export::*;
+use commands::cli::*;
 
 fn main() {
     tauri::Builder::default()
@@ -13,7 +14,10 @@ fn main() {
             get_scan_progress,
             debug_icon_paths,
             get_icon_as_base64,
-            download_icon_from_url
+            download_icon_from_url,
+            execute_cli_command,
+            get_cli_version,
+            is_cli_enabled
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

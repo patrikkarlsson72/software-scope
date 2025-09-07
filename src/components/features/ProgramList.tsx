@@ -28,6 +28,7 @@ import { useDebounce } from '../../hooks/useDebounce';
 import { ProgramDetails } from './ProgramDetails';
 import { ChevronDownIcon } from '@chakra-ui/icons';
 import { ProgramIcon } from '../common/ProgramIcon';
+import { useSettings } from '../../contexts/SettingsContext';
 
 type SortField = 'name' | 'publisher' | 'install_date' | 'version';
 type SortDirection = 'asc' | 'desc';
@@ -36,6 +37,7 @@ type ProgramType = 'all' | 'Application' | 'SystemComponent' | 'Update';
 type Architecture = 'all' | '32-bit' | '64-bit';
 
 export const ProgramList: React.FC = () => {
+  const { settings } = useSettings();
   const [programs, setPrograms] = useState<ProgramInfo[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -182,7 +184,7 @@ export const ProgramList: React.FC = () => {
     }
   };
 
-  const handleExport = async (format: 'CSV' | 'HTML' | 'XML' | 'TXT') => {
+  const handleExport = async (format: 'CSV' | 'HTML' | 'XML' | 'TXT' = settings.defaultExportFormat) => {
     try {
       const filePath = await save({
         filters: [{
@@ -195,7 +197,8 @@ export const ProgramList: React.FC = () => {
         await invoke('export_programs', {
           programs: filteredAndSortedPrograms,
           format,
-          filePath
+          filePath,
+          includeAdvancedDetails: settings.includeAdvancedDetails
         });
 
         toast({
@@ -244,17 +247,26 @@ export const ProgramList: React.FC = () => {
     <Box p={5}>
       <HStack justify="space-between" mb={6}>
         <Heading size="lg">Installed Programs</Heading>
-        <Menu>
-          <MenuButton as={Button} rightIcon={<ChevronDownIcon />}>
-            Export
-          </MenuButton>
-          <MenuList>
-            <MenuItem onClick={() => handleExport('CSV')}>Export as CSV</MenuItem>
-            <MenuItem onClick={() => handleExport('HTML')}>Export as HTML</MenuItem>
-            <MenuItem onClick={() => handleExport('XML')}>Export as XML</MenuItem>
-            <MenuItem onClick={() => handleExport('TXT')}>Export as Text</MenuItem>
-          </MenuList>
-        </Menu>
+        <HStack spacing={2}>
+          <Button 
+            onClick={() => handleExport()} 
+            colorScheme="blue"
+            size="sm"
+          >
+            Quick Export ({settings.defaultExportFormat})
+          </Button>
+          <Menu>
+            <MenuButton as={Button} rightIcon={<ChevronDownIcon />} size="sm">
+              Export Options
+            </MenuButton>
+            <MenuList>
+              <MenuItem onClick={() => handleExport('CSV')}>Export as CSV</MenuItem>
+              <MenuItem onClick={() => handleExport('HTML')}>Export as HTML</MenuItem>
+              <MenuItem onClick={() => handleExport('XML')}>Export as XML</MenuItem>
+              <MenuItem onClick={() => handleExport('TXT')}>Export as Text</MenuItem>
+            </MenuList>
+          </Menu>
+        </HStack>
       </HStack>
       
       <Stack spacing={4}>
@@ -382,13 +394,14 @@ export const ProgramList: React.FC = () => {
                     size="24px"
                     publisher={program.publisher}
                     programType={program.program_type}
+                    lazy={settings.enableLazyLoading}
                   />
                   <Heading size="sm">{program.name}</Heading>
                 </HStack>
                 {program.publisher && <Text fontSize="sm">Publisher: {program.publisher}</Text>}
                 {program.version && <Text fontSize="sm">Version: {program.version}</Text>}
-                {program.install_date && <Text fontSize="sm">Installed: {program.install_date}</Text>}
-                <Text fontSize="sm" color="gray.500">{program.architecture}</Text>
+                {program.install_date && settings.showInstallDate && <Text fontSize="sm">Installed: {program.install_date}</Text>}
+                {settings.showArchitecture && <Text fontSize="sm" color="gray.500">{program.architecture}</Text>}
               </CardBody>
             </Card>
           ))}

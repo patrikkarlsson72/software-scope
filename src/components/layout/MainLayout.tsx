@@ -1,6 +1,6 @@
 import { Box, Flex, Heading, Button, useDisclosure } from '@chakra-ui/react';
 import { SettingsIcon } from '@chakra-ui/icons';
-import { CacheManager } from '../common/CacheManager';
+import { SettingsPanel } from '../common/SettingsPanel';
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -28,7 +28,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       
       {isOpen && (
         <Box bg="white" borderBottom="1px" borderColor="gray.200" p={4}>
-          <CacheManager />
+          <SettingsPanel />
         </Box>
       )}
       

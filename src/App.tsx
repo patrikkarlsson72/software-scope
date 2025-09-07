@@ -1,11 +1,14 @@
 import { MainLayout } from './components/layout/MainLayout';
 import { ProgramList } from './components/features/ProgramList';
+import { SettingsProvider } from './contexts/SettingsContext';
 
 function App() {
   return (
-    <MainLayout>
-      <ProgramList />
-    </MainLayout>
+    <SettingsProvider>
+      <MainLayout>
+        <ProgramList />
+      </MainLayout>
+    </SettingsProvider>
   );
 }
 
