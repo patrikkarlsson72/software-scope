@@ -1,0 +1,62 @@
+# User Interface Design Document (UIDD) - SoftwareScope
+
+## Layout Structure
+- **Header Bar**  
+  - Left: Application title *Software Scope*  
+  - Right: Settings button  
+- **Main Content**  
+  - Title: "Installed Programs"  
+  - Search bar for program names  
+  - Filter dropdowns (Publisher, Program Type, Time Range)  
+  - Sorting options (Name, Publisher, Version)  
+  - Export menu (CSV, HTML, XML, Text)  
+  - Program display area: Grid of program cards  
+- **Program Card**  
+  - Icon (cached or fallback)  
+  - Program name  
+  - Publisher  
+  - Version  
+  - Install date  
+  - Architecture (32/64-bit)
+
+## Core Components
+- **Search Bar**: Real-time filtering of program list.  
+- **Filter Controls**: Dropdowns for publisher, type, and time.  
+- **Sorting Controls**: Buttons for common sort keys.  
+- **Program Cards**: Primary unit of display, each representing a program.  
+- **Export Button**: Dropdown with export format choices.  
+- **Settings Panel**: Accessible from header.  
+
+## Interaction Patterns
+- **Search**: Typing in the search bar instantly filters results.  
+- **Filter/Sort**: Selecting filter or sort options refreshes the program grid.  
+- **Program Card Click**: Opens modal with detailed program information (collapsible sections).  
+- **Export**: Clicking export menu prompts file download.  
+- **Settings**: Opens configuration panel (e.g., cache, log folders).  
+
+## Visual Design Elements & Color Scheme
+- **Overall Style**: Clean, minimal, Windows-inspired.  
+- **Color Palette**:  
+  - Header: Dark/navy blue (Windows 11 style)  
+  - Background: Light gray/white for contrast  
+  - Cards: White with subtle shadow and rounded corners  
+  - Buttons: Neutral gray with hover states  
+  - Accent: Brighter blue for primary actions  
+- **Icons**: Program icons displayed when available, fallback generic icon if missing.  
+
+## Mobile, Web App, Desktop Considerations
+- **Primary Platform**: Desktop (Windows).  
+- **Desktop Focus**: Optimized for large program lists, responsive resizing of card grid.  
+- **Mobile/Web**: Not prioritized but design is responsive; grid adapts to 1–2 cards per row.  
+
+## Typography
+- **Primary Font**: System font stack (Segoe UI for Windows).  
+- **Headings**: Bold, slightly larger for hierarchy.  
+- **Body Text**: Medium weight, standard size for readability.  
+- **Consistency**: Clear distinction between headings, metadata, and values.  
+
+## Accessibility
+- **Keyboard Navigation**: Full navigation via tab and arrow keys.  
+- **Color Contrast**: Meets WCAG AA standard (dark text on light backgrounds).  
+- **Screen Reader Support**: Program cards and modals provide descriptive labels.  
+- **Hover/Focus States**: Clear indication of interactivity.  

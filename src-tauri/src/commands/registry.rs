@@ -181,29 +181,24 @@ fn extract_icon_path(icon_path: &str) -> Option<String> {
             match extension.to_lowercase().as_str() {
                 "ico" => {
                     // Direct ICO file - return as is
-                    println!("Found ICO file: {}", test_path);
                     return Some(test_path.clone());
                 }
                 "exe" | "dll" => {
                     // For executable files, return the path
-                    println!("Found executable: {}", test_path);
                     return Some(test_path.clone());
                 }
                 "lnk" => {
                     // Shortcut file
-                    println!("Found shortcut: {}", test_path);
                     return Some(test_path.clone());
                 }
                 _ => {
                     // Unknown extension, but file exists
-                    println!("Found file with extension '{}': {}", extension, test_path);
                     return Some(test_path.clone());
                 }
             }
         }
     }
     
-    println!("No valid icon path found for: {} (tried: {:?})", icon_path, paths_to_try);
     None
 }
 

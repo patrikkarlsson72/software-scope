@@ -1,0 +1,45 @@
+# Product Requirements Document (PRD) - SoftwareScope
+
+## 1. Elevator Pitch
+SoftwareScope is a modern Windows software management tool designed for IT administrators. Inspired by NirSoft’s UninstallView, it provides a clear overview of all installed applications, enriched with detailed information such as registry data, uninstall commands, and custom log file paths. The goal is to simplify software auditing, troubleshooting, and program lifecycle management in enterprise environments.
+
+## 2. Who is this app for
+- **IT Administrators** who need to quickly identify installed applications across systems.
+- **Support Engineers** who troubleshoot installations and require access to log files and registry details.
+- **Forensics/Compliance Teams** who need detailed and exportable records of installed software.
+- **Advanced Users** who want more control over their Windows environment.
+
+## 3. Functional Requirements
+- List all installed programs, updates, and system components.
+- Display detailed information including:
+  - Program name, publisher, version, install date, folder path
+  - Registry keys and associated values
+  - Uninstall and quiet uninstall commands
+  - Architecture (32-bit/64-bit)
+- Advanced search and filtering (publisher, date range, program type).
+- Export results (CSV, HTML, XML, Text).
+- Support for silent/unattended uninstallation.
+- Program icon display with caching.
+- Add custom search paths for installation logs (user-defined folders).
+- Remote scanning (planned).
+- External drive scanning (planned).
+- Command-line interface for automation (planned).
+
+## 4. User Stories
+- **As an IT admin**, I want to search and filter installed software so that I can quickly identify suspicious or outdated programs.
+- **As an IT admin**, I want to copy uninstall strings and registry paths so that I can use them in scripts.
+- **As a support engineer**, I want to define custom log folders so that I can directly access installation logs for troubleshooting.
+- **As a compliance officer**, I want to export software inventories so that I can provide audit documentation.
+- **As an advanced user**, I want to see both 32-bit and 64-bit applications so that I understand my system’s full software footprint.
+
+## 5. User Interface
+- **Current Layout** (to be preserved):  
+  - Main program list view with icons, program details, and search/filter controls.  
+  - Program details modal with collapsible sections:  
+    - Basic Information  
+    - Installation Details  
+    - Uninstall Information  
+    - Additional Information  
+    - Advanced Details (expandable)  
+- **Design Philosophy**: Clean, modern, consistent styling using Chakra UI and React components.
+- **Navigation**: Simple, with minimal menus. Primary workflow is through the searchable/filterable list of installed programs.
