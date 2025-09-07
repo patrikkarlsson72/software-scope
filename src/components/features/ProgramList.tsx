@@ -165,6 +165,7 @@ export const ProgramList: React.FC = () => {
       try {
         const installedPrograms = await invoke<ProgramInfo[]>('get_installed_programs');
         setPrograms(installedPrograms);
+        console.log(`Loaded ${installedPrograms.length} programs`);
       } catch (err) {
         setError(err as string);
       } finally {
@@ -389,12 +390,9 @@ export const ProgramList: React.FC = () => {
               <CardBody>
                 <HStack spacing={3} align="flex-start" mb={2}>
                   <ProgramIcon 
-                    iconPath={program.icon_path} 
                     programName={program.name} 
                     size="24px"
                     publisher={program.publisher}
-                    programType={program.program_type}
-                    lazy={settings.enableLazyLoading}
                   />
                   <Heading size="sm">{program.name}</Heading>
                 </HStack>

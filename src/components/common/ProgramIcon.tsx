@@ -1,115 +1,170 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Box, Image, Icon, Spinner } from '@chakra-ui/react';
+import React, { useState, useEffect } from 'react';
+import { Box, Image, Icon } from '@chakra-ui/react';
 import { FaWindowMaximize } from 'react-icons/fa';
-import { useIconCache } from '../../hooks/useIconCache';
-import { invoke } from '@tauri-apps/api/tauri';
-import { iconService } from '../../services/iconService';
-
-// Helper function to determine if we should try to display an icon
-const shouldDisplayIcon = (iconPath: string): boolean => {
-  const extension = iconPath.split('.').pop()?.toLowerCase();
-  return extension === 'ico' || extension === 'png' || extension === 'jpg' || extension === 'jpeg' || extension === 'exe' || extension === 'dll';
-};
 
 interface ProgramIconProps {
-  iconPath?: string;
   programName: string;
   size?: string | number;
   showFallback?: boolean;
-  lazy?: boolean; // New prop for lazy loading
-  publisher?: string; // For fallback icon matching
-  programType?: string; // For generic fallback icons
+  publisher?: string;
 }
 
+// Simple icon mapping - direct and reliable
+const getIconForProgram = (programName: string, publisher?: string): string | null => {
+  const name = programName.toLowerCase();
+  const pub = publisher?.toLowerCase() || '';
+
+  // HP programs
+  if (pub.includes('hp')) {
+    return 'data:image/svg+xml;base64,' + btoa(`
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#0096D6">
+        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.94-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+      </svg>
+    `);
+  }
+
+  // Microsoft programs
+  if (pub.includes('microsoft')) {
+    return 'data:image/svg+xml;base64,' + btoa(`
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+        <rect x="0" y="0" width="11.4" height="11.4" fill="#F25022"/>
+        <rect x="12.6" y="0" width="11.4" height="11.4" fill="#7FBA00"/>
+        <rect x="0" y="12.6" width="11.4" height="11.4" fill="#00A4EF"/>
+        <rect x="12.6" y="12.6" width="11.4" height="11.4" fill="#FFB900"/>
+      </svg>
+    `);
+  }
+
+  // Brave browser
+  if (name.includes('brave')) {
+    return 'data:image/svg+xml;base64,' + btoa(`
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#FB542B">
+        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.94-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+      </svg>
+    `);
+  }
+
+  // Git
+  if (name.includes('git')) {
+    return 'data:image/svg+xml;base64,' + btoa(`
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#F05032">
+        <path d="M23.546 10.93L13.067.452c-.604-.603-1.582-.603-2.188 0L8.708 2.627l2.76 2.76c.645-.215 1.379-.07 1.889.441.516.515.658 1.258.438 1.9l2.658 2.66c.645-.223 1.387-.078 1.9.435.721.72.721 1.884 0 2.604-.719.719-1.881.719-2.6 0-.539-.541-.674-1.337-.404-1.996L12.86 8.955v6.525c.176.086.342.203.488.348.713.721.713 1.883 0 2.6-.719.721-1.889.721-2.609 0-.719-.719-.719-1.879 0-2.598.182-.18.387-.316.605-.406V8.835c-.218-.091-.423-.222-.6-.401-.545-.545-.676-1.342-.396-2.009L7.636 3.7.45 10.881c-.6.605-.6 1.584 0 2.189l10.48 10.477c.604.604 1.582.604 2.186 0l10.43-10.43c.605-.603.605-1.582 0-2.187"/>
+      </svg>
+    `);
+  }
+
+  // Chrome
+  if (name.includes('chrome')) {
+    return 'data:image/svg+xml;base64,' + btoa(`
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#4285F4">
+        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.94-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+      </svg>
+    `);
+  }
+
+  // Firefox
+  if (name.includes('firefox')) {
+    return 'data:image/svg+xml;base64,' + btoa(`
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#FF7139">
+        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.94-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+      </svg>
+    `);
+  }
+
+  // Edge
+  if (name.includes('edge')) {
+    return 'data:image/svg+xml;base64,' + btoa(`
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#0078D4">
+        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.94-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+      </svg>
+    `);
+  }
+
+  // Discord
+  if (name.includes('discord')) {
+    return 'data:image/svg+xml;base64,' + btoa(`
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#5865F2">
+        <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
+      </svg>
+    `);
+  }
+
+  // Steam
+  if (name.includes('steam')) {
+    return 'data:image/svg+xml;base64,' + btoa(`
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#171a21">
+        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.94-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+      </svg>
+    `);
+  }
+
+  // Adobe
+  if (name.includes('adobe') || name.includes('photoshop') || name.includes('acrobat')) {
+    return 'data:image/svg+xml;base64,' + btoa(`
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#FF0000">
+        <path d="M13.966 22.624l-1.69-4.281H8.122l-1.69 4.281H4.281L9.49 1.376h2.02l5.208 21.248h-2.752zm-2.4-6.18l-2.04-5.168-2.04 5.168h4.08z"/>
+      </svg>
+    `);
+  }
+
+  // VS Code
+  if (name.includes('vscode') || name.includes('visual studio code')) {
+    return 'data:image/svg+xml;base64,' + btoa(`
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#007ACC">
+        <path d="M23.15 2.587L18.21.21a1.494 1.494 0 0 0-1.705.29l-9.46 8.63-4.12-3.128a.999.999 0 0 0-1.276.057L.327 7.261A1 1 0 0 0 .326 8.74L3.899 12 .326 15.26a1 1 0 0 0 .001 1.479L1.65 17.94a.999.999 0 0 0 1.276.057l4.12-3.128 9.46 8.63a1.492 1.492 0 0 0 1.704.29l4.942-2.377A1.5 1.5 0 0 0 24 20.06V3.939a1.5 1.5 0 0 0-.85-1.352zm-5.146 14.861L10.826 12l7.178-5.448v10.896z"/>
+      </svg>
+    `);
+  }
+
+  // Teams
+  if (name.includes('teams')) {
+    return 'data:image/svg+xml;base64,' + btoa(`
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#6264A7">
+        <path d="M20.5 14.26a1 1 0 0 0-1 0l-6.5 3.75a1 1 0 0 1-1 0L5.5 14.26a1 1 0 0 0-1 0l-1.5.87a1 1 0 0 1-1.5-.87V6.38a1 1 0 0 1 .5-.87l1.5-.87a1 1 0 0 1 1 0l6.5 3.75a1 1 0 0 0 1 0l6.5-3.75a1 1 0 0 1 1 0l1.5.87a1 1 0 0 1 .5.87v8.88a1 1 0 0 1-.5.87l-1.5.87z"/>
+      </svg>
+    `);
+  }
+
+  // OneDrive
+  if (name.includes('onedrive')) {
+    return 'data:image/svg+xml;base64,' + btoa(`
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#0078D4">
+        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.94-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+      </svg>
+    `);
+  }
+
+  // Office
+  if (name.includes('office') || name.includes('word') || name.includes('excel') || name.includes('powerpoint')) {
+    return 'data:image/svg+xml;base64,' + btoa(`
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#D83B01">
+        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.94-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+      </svg>
+    `);
+  }
+
+  return null;
+};
+
 export const ProgramIcon: React.FC<ProgramIconProps> = ({ 
-  iconPath, 
   programName, 
   size = "24px",
   showFallback = true,
-  lazy = true, // Default to lazy loading
-  publisher,
-  programType
+  publisher
 }) => {
-  const { getCachedIcon, setCachedIcon } = useIconCache();
-  const [isLoading, setIsLoading] = useState(false);
-  const [hasError, setHasError] = useState(false);
   const [iconData, setIconData] = useState<string>('');
-  const [isVisible, setIsVisible] = useState(!lazy); // Start visible if not lazy
-  const iconRef = useRef<HTMLDivElement>(null);
 
-  // Intersection Observer for lazy loading
   useEffect(() => {
-    if (!lazy || !iconRef.current) return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true);
-          observer.disconnect();
-        }
-      },
-      { threshold: 0.1 }
-    );
-
-    observer.observe(iconRef.current);
-    return () => observer.disconnect();
-  }, [lazy]);
-
-  // Load icon data when component is visible
-  useEffect(() => {
-    if (isVisible) {
-      loadIconData(iconPath || '');
+    // Get icon directly from our simple mapping
+    const icon = getIconForProgram(programName, publisher);
+    if (icon) {
+      setIconData(icon);
+    } else {
+      setIconData('');
     }
-  }, [iconPath, isVisible, programName, publisher, programType]);
+  }, [programName, publisher]);
 
-  const loadIconData = async (path: string) => {
-    setIsLoading(true);
-    setHasError(false);
-
-    try {
-      // First, try fallback icon service for better icon matching
-      console.log(`🔄 Trying fallback icon for: ${programName} (Publisher: ${publisher})`);
-      const fallbackIcon = await iconService.getFallbackIcon(programName, publisher, programType);
-      if (fallbackIcon) {
-        setIconData(fallbackIcon);
-        console.log(`✅ Fallback icon loaded successfully for: ${programName}`);
-        setIsLoading(false);
-        return;
-      }
-
-      // If no fallback icon found, try local icon
-      if (path && shouldDisplayIcon(path)) {
-        // Check cache first
-        const cached = getCachedIcon(path);
-        if (cached) {
-          setIconData(cached);
-          setIsLoading(false);
-          return;
-        }
-
-        try {
-          // Use Tauri command to read file as base64
-          const base64Data: string = await invoke('get_icon_as_base64', { iconPath: path });
-          setIconData(base64Data);
-          setCachedIcon(path, base64Data);
-          console.log(`✅ Local icon loaded successfully: ${path}`);
-        } catch (error) {
-          console.error(`❌ Failed to load local icon ${path}:`, error);
-          // Don't set hasError here, let it fall through to generic fallback
-        }
-      }
-      
-      // If we reach here, no icon was found - show generic fallback
-      setHasError(true);
-    } catch (fallbackError) {
-      console.error(`❌ Failed to load fallback icon for ${programName}:`, fallbackError);
-      setHasError(true);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  if (hasError || (!iconData && !isLoading)) {
+  if (!iconData) {
     if (!showFallback) return null;
     return (
       <Box width={size} height={size} display="flex" alignItems="center" justifyContent="center">
@@ -124,19 +179,12 @@ export const ProgramIcon: React.FC<ProgramIconProps> = ({
 
   return (
     <Box 
-      ref={iconRef}
       width={size} 
       height={size} 
       display="flex" 
       alignItems="center" 
       justifyContent="center"
     >
-      {!isVisible && lazy ? (
-        // Show placeholder while waiting for intersection
-        <Icon as={FaWindowMaximize} boxSize={size} color="gray.300" />
-      ) : isLoading ? (
-        <Spinner size="sm" color="blue.500" />
-      ) : iconData ? (
         <Image
           src={iconData}
           alt={`${programName} icon`}
@@ -148,11 +196,6 @@ export const ProgramIcon: React.FC<ProgramIconProps> = ({
             ) : undefined
           }
         />
-      ) : (
-        showFallback && (
-          <Icon as={FaWindowMaximize} boxSize={size} color="gray.500" />
-        )
-      )}
     </Box>
   );
 };
