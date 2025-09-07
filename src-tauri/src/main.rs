@@ -12,7 +12,8 @@ fn main() {
             export_programs,
             get_scan_progress,
             debug_icon_paths,
-            get_icon_as_base64
+            get_icon_as_base64,
+            download_icon_from_url
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

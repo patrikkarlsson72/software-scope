@@ -4,6 +4,7 @@ use serde::{Serialize, Deserialize};
 use std::path::Path;
 use std::fs;
 use base64::Engine;
+use reqwest;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ProgramInfo {
@@ -280,5 +281,40 @@ fn determine_program_type(key: &RegKey) -> String {
         "Update".to_string()
     } else {
         "Application".to_string()
+    }
+}
+
+#[tauri::command]
+pub async fn download_icon_from_url(url: String) -> Result<String, String> {
+    // Download icon from URL and convert to base64
+    match reqwest::get(&url).await {
+        Ok(response) => {
+            if response.status().is_success() {
+                match response.bytes().await {
+                    Ok(bytes) => {
+                        let base64_data = base64::engine::general_purpose::STANDARD.encode(&bytes);
+                        
+                        // Determine MIME type from URL or content
+                        let mime_type = if url.ends_with(".svg") {
+                            "image/svg+xml"
+                        } else if url.ends_with(".png") {
+                            "image/png"
+                        } else if url.ends_with(".jpg") || url.ends_with(".jpeg") {
+                            "image/jpeg"
+                        } else if url.ends_with(".ico") {
+                            "image/x-icon"
+                        } else {
+                            "image/svg+xml" // Default for most CDN icons
+                        };
+                        
+                        Ok(format!("data:{};base64,{}", mime_type, base64_data))
+                    }
+                    Err(e) => Err(format!("Failed to read response bytes: {}", e))
+                }
+            } else {
+                Err(format!("HTTP error: {}", response.status()))
+            }
+        }
+        Err(e) => Err(format!("Failed to download icon: {}", e))
     }
 } 

@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 
 interface IconCache {
   [key: string]: {
@@ -47,10 +47,14 @@ export const useIconCache = () => {
     };
   }, [cache]);
 
+  // Memoized cache stats to prevent unnecessary recalculations
+  const cacheStats = useMemo(() => getCacheStats(), [getCacheStats]);
+
   return {
     getCachedIcon,
     setCachedIcon,
     clearCache,
-    getCacheStats
+    getCacheStats,
+    cacheStats
   };
 };

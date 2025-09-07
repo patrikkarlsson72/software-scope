@@ -215,8 +215,30 @@ export const ProgramList: React.FC = () => {
     }
   };
 
-  if (loading) return <div>Loading installed programs...</div>;
-  if (error) return <div>Error: {error}</div>;
+  if (loading) {
+    return (
+      <Box p={5} textAlign="center">
+        <Spinner size="xl" color="blue.500" mb={4} />
+        <Text fontSize="lg" color="gray.600">
+          Scanning installed programs...
+        </Text>
+        <Text fontSize="sm" color="gray.500" mt={2}>
+          This may take a moment for the first scan
+        </Text>
+      </Box>
+    );
+  }
+  
+  if (error) {
+    return (
+      <Box p={5} textAlign="center">
+        <Text color="red.500" fontSize="lg" mb={2}>
+          Error loading programs
+        </Text>
+        <Text color="gray.600">{error}</Text>
+      </Box>
+    );
+  }
 
   return (
     <Box p={5}>
@@ -357,7 +379,9 @@ export const ProgramList: React.FC = () => {
                   <ProgramIcon 
                     iconPath={program.icon_path} 
                     programName={program.name} 
-                    size="24px" 
+                    size="24px"
+                    publisher={program.publisher}
+                    programType={program.program_type}
                   />
                   <Heading size="sm">{program.name}</Heading>
                 </HStack>
