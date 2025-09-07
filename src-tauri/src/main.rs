@@ -15,6 +15,7 @@ fn main() {
             debug_icon_paths,
             get_icon_as_base64,
             download_icon_from_url,
+            test_alternative_locations,
             execute_cli_command,
             get_cli_version,
             is_cli_enabled

@@ -22,6 +22,7 @@ import {
   MenuList,
   MenuItem,
   useToast,
+  Badge,
 } from '@chakra-ui/react';
 import { ProgramInfo } from '../../types/ProgramInfo';
 import { useDebounce } from '../../hooks/useDebounce';
@@ -33,8 +34,9 @@ import { useSettings } from '../../contexts/SettingsContext';
 type SortField = 'name' | 'publisher' | 'install_date' | 'version';
 type SortDirection = 'asc' | 'desc';
 type DateFilter = 'all' | 'last7days' | 'last30days' | 'last90days' | 'custom';
-type ProgramType = 'all' | 'Application' | 'SystemComponent' | 'Update';
-type Architecture = 'all' | '32-bit' | '64-bit';
+type ProgramType = 'all' | 'Application' | 'SystemComponent' | 'Update' | 'Portable Application';
+type Architecture = 'all' | '32-bit' | '64-bit' | 'User' | 'Unknown';
+type InstallationSource = 'all' | 'System' | 'User' | 'Filesystem';
 
 export const ProgramList: React.FC = () => {
   const { settings } = useSettings();
@@ -54,6 +56,7 @@ export const ProgramList: React.FC = () => {
   const [programType, setProgramType] = useState<ProgramType>('all');
   const [isSearching, setIsSearching] = useState(false);
   const [architecture, setArchitecture] = useState<Architecture>('all');
+  const [installationSource, setInstallationSource] = useState<InstallationSource>('all');
   const [selectedProgram, setSelectedProgram] = useState<ProgramInfo | null>(null);
 
   const debouncedSearchTerm = useDebounce(searchTerm);
@@ -137,8 +140,9 @@ export const ProgramList: React.FC = () => {
 
         const matchesType = programType === 'all' || program.program_type === programType;
         const matchesArchitecture = architecture === 'all' || program.architecture === architecture;
+        const matchesInstallationSource = installationSource === 'all' || program.installation_source === installationSource;
 
-        return matchesSearch && matchesPublisher && matchesDate && matchesType && matchesArchitecture;
+        return matchesSearch && matchesPublisher && matchesDate && matchesType && matchesArchitecture && matchesInstallationSource;
       })
       .sort((a, b) => {
         const aValue = a[sortField] || '';
@@ -157,6 +161,7 @@ export const ProgramList: React.FC = () => {
     sortField,
     sortDirection,
     architecture,
+    installationSource,
   ]);
 
   // Fetch programs
@@ -318,6 +323,19 @@ export const ProgramList: React.FC = () => {
             <option value="all">All Architectures</option>
             <option value="32-bit">32-bit</option>
             <option value="64-bit">64-bit</option>
+            <option value="User">User</option>
+            <option value="Unknown">Unknown</option>
+          </Select>
+
+          <Select
+            value={installationSource}
+            onChange={(e) => setInstallationSource(e.target.value as InstallationSource)}
+            width="150px"
+          >
+            <option value="all">All Sources</option>
+            <option value="System">System</option>
+            <option value="User">User</option>
+            <option value="Filesystem">Filesystem</option>
           </Select>
 
           <Text ml="auto" color="gray.600" fontSize="sm">
@@ -399,7 +417,19 @@ export const ProgramList: React.FC = () => {
                 {program.publisher && <Text fontSize="sm">Publisher: {program.publisher}</Text>}
                 {program.version && <Text fontSize="sm">Version: {program.version}</Text>}
                 {program.install_date && settings.showInstallDate && <Text fontSize="sm">Installed: {program.install_date}</Text>}
-                {settings.showArchitecture && <Text fontSize="sm" color="gray.500">{program.architecture}</Text>}
+                <HStack spacing={2} wrap="wrap">
+                  {settings.showArchitecture && <Badge size="sm" colorScheme="blue">{program.architecture}</Badge>}
+                  <Badge 
+                    size="sm"
+                    colorScheme={
+                      program.installation_source === 'System' ? 'blue' :
+                      program.installation_source === 'User' ? 'green' :
+                      'orange'
+                    }
+                  >
+                    {program.installation_source}
+                  </Badge>
+                </HStack>
               </CardBody>
             </Card>
           ))}

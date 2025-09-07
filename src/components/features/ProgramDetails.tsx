@@ -66,6 +66,15 @@ export const ProgramDetails: React.FC<ProgramDetailsProps> = ({ program, isOpen,
               <HStack spacing={2}>
                 <Badge colorScheme="blue">{program.architecture}</Badge>
                 <Badge colorScheme="green">{program.program_type}</Badge>
+                <Badge 
+                  colorScheme={
+                    program.installation_source === 'System' ? 'blue' :
+                    program.installation_source === 'User' ? 'green' :
+                    'orange'
+                  }
+                >
+                  {program.installation_source}
+                </Badge>
                 {program.is_windows_installer && (
                   <Badge colorScheme="purple">Windows Installer</Badge>
                 )}
@@ -117,6 +126,18 @@ export const ProgramDetails: React.FC<ProgramDetailsProps> = ({ program, isOpen,
                         </GridItem>
                       </>
                     )}
+                    <GridItem><Text color="gray.600">Installation Source</Text></GridItem>
+                    <GridItem>
+                      <Badge 
+                        colorScheme={
+                          program.installation_source === 'System' ? 'blue' :
+                          program.installation_source === 'User' ? 'green' :
+                          'orange'
+                        }
+                      >
+                        {program.installation_source}
+                      </Badge>
+                    </GridItem>
                   </Grid>
                 </AccordionPanel>
               </AccordionItem>

@@ -41,22 +41,32 @@ pub struct ProgramInfo {
     pub program_type: String,
     pub is_windows_installer: bool,
     pub architecture: String,
+    pub installation_source: String,     // NEW: "System", "User", "Filesystem"
 }
 
 #[tauri::command]
 pub fn get_installed_programs() -> Result<Vec<ProgramInfo>, String> {
     let mut programs = Vec::new();
     let hklm = RegKey::predef(HKEY_LOCAL_MACHINE);
+    let hkcu = RegKey::predef(HKEY_CURRENT_USER);
 
-    // Scan 64-bit programs
+    // Scan system-wide 64-bit programs
     if let Ok(uninstall_key) = hklm.open_subkey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall") {
-        scan_registry_key(&uninstall_key, &mut programs, "64-bit");
+        scan_registry_key(&uninstall_key, &mut programs, "64-bit", "System");
     }
 
-    // Scan 32-bit programs
+    // Scan system-wide 32-bit programs
     if let Ok(uninstall_key) = hklm.open_subkey("SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall") {
-        scan_registry_key(&uninstall_key, &mut programs, "32-bit");
+        scan_registry_key(&uninstall_key, &mut programs, "32-bit", "System");
     }
+
+    // Scan user-installed programs (HKEY_CURRENT_USER)
+    if let Ok(uninstall_key) = hkcu.open_subkey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall") {
+        scan_registry_key(&uninstall_key, &mut programs, "User", "User");
+    }
+
+    // Scan alternative installation locations
+    scan_alternative_locations(&mut programs);
 
     Ok(programs)
 }
@@ -215,6 +225,9 @@ fn expand_environment_path(path: &str) -> String {
         ("%SystemRoot%", r"C:\Windows"),
         ("%windir%", r"C:\Windows"),
         ("%SystemDrive%", "C:"),
+        ("%APPDATA%", r"C:\Users\%USERNAME%\AppData\Roaming"),
+        ("%LOCALAPPDATA%", r"C:\Users\%USERNAME%\AppData\Local"),
+        ("%USERPROFILE%", r"C:\Users\%USERNAME%"),
     ];
     
     for (var, value) in &replacements {
@@ -224,7 +237,113 @@ fn expand_environment_path(path: &str) -> String {
     expanded
 }
 
-fn scan_registry_key(key: &RegKey, programs: &mut Vec<ProgramInfo>, architecture: &str) {
+fn scan_alternative_locations(programs: &mut Vec<ProgramInfo>) {
+    // Get current user's profile path
+    if let Ok(user_profile) = std::env::var("USERPROFILE") {
+        let appdata_roaming = format!("{}\\AppData\\Roaming", user_profile);
+        let appdata_local = format!("{}\\AppData\\Local", user_profile);
+        
+        // Scan AppData\Roaming for portable applications
+        scan_directory_for_programs(&appdata_roaming, programs, "AppData\\Roaming");
+        
+        // Scan AppData\Local for portable applications
+        scan_directory_for_programs(&appdata_local, programs, "AppData\\Local");
+    }
+    
+    // Scan common portable application locations
+    let common_paths = [
+        r"C:\PortableApps",
+        r"C:\Tools",
+        r"C:\Utilities",
+        r"C:\Programs",
+    ];
+    
+    for path in &common_paths {
+        if Path::new(path).exists() {
+            scan_directory_for_programs(path, programs, "Portable");
+        }
+    }
+}
+
+fn scan_directory_for_programs(base_path: &str, programs: &mut Vec<ProgramInfo>, source: &str) {
+    if let Ok(entries) = fs::read_dir(base_path) {
+        for entry in entries {
+            if let Ok(entry) = entry {
+                let path = entry.path();
+                if path.is_dir() {
+                    let dir_name = path.file_name().unwrap().to_string_lossy().to_string();
+                    
+                    // Look for common executable patterns
+                    let executable_patterns = [
+                        format!("{}.exe", dir_name),
+                        format!("{}\\{}.exe", dir_name, dir_name),
+                        format!("{}\\bin\\{}.exe", dir_name, dir_name),
+                        format!("{}\\app\\{}.exe", dir_name, dir_name),
+                    ];
+                    
+                    for pattern in &executable_patterns {
+                        let full_path = format!("{}\\{}", base_path, pattern);
+                        if Path::new(&full_path).exists() {
+                            // Try to get version info from the executable
+                            let version = get_file_version(&full_path);
+                            
+                            let program = ProgramInfo {
+                                name: dir_name.clone(),
+                                registry_name: format!("{}_{}", dir_name, source.replace("\\", "_")),
+                                version,
+                                registry_time: None,
+                                install_date: None,
+                                installed_for: Some("Current User".to_string()),
+                                install_location: Some(full_path.clone()),
+                                install_source: None,
+                                install_folder_created: None,
+                                install_folder_modified: None,
+                                install_folder_owner: None,
+                                publisher: None,
+                                uninstall_string: None,
+                                change_install_string: None,
+                                quiet_uninstall_string: None,
+                                comments: Some(format!("Portable application found in {}", source)),
+                                about_url: None,
+                                update_info_url: None,
+                                help_link: None,
+                                install_source_path: None,
+                                installer_name: None,
+                                release_type: None,
+                                icon_path: Some(full_path.clone()),
+                                msi_filename: None,
+                                estimated_size: None,
+                                attributes: None,
+                                language: None,
+                                parent_key_name: None,
+                                registry_path: format!("Filesystem: {}", full_path),
+                                program_type: "Portable Application".to_string(),
+                                is_windows_installer: false,
+                                architecture: "Unknown".to_string(),
+                                installation_source: "Filesystem".to_string(),
+                            };
+                            
+                            // Check if we already have this program (avoid duplicates)
+                            if !programs.iter().any(|p| p.name == program.name && p.install_location == program.install_location) {
+                                programs.push(program);
+                            }
+                            break; // Found executable, move to next directory
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+fn get_file_version(_file_path: &str) -> Option<String> {
+    // This is a simplified version extraction
+    // In a real implementation, you might want to use a Windows API to get the actual version
+    // For now, we'll just return None and let the UI handle missing versions
+    None
+}
+
+fn scan_registry_key(key: &RegKey, programs: &mut Vec<ProgramInfo>, architecture: &str, source: &str) {
     for key_result in key.enum_keys() {
         if let Ok(key_name) = key_result {
             if let Ok(program_key) = key.open_subkey(&key_name) {
@@ -233,13 +352,23 @@ fn scan_registry_key(key: &RegKey, programs: &mut Vec<ProgramInfo>, architecture
                         .ok()
                         .and_then(|path: String| extract_icon_path(&path));
 
+                    let installed_for = match source {
+                        "User" => Some("Current User".to_string()),
+                        _ => Some(format!("All Users ({})", architecture)),
+                    };
+
+                    let registry_path = match source {
+                        "User" => format!("HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{}", key_name),
+                        _ => format!("HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{}", key_name),
+                    };
+
                     let program = ProgramInfo {
                         name,
                         registry_name: key_name.clone(),
                         version: program_key.get_value("DisplayVersion").ok(),
                         registry_time: program_key.get_value("InstallTime").ok(),
                         install_date: program_key.get_value("InstallDate").ok(),
-                        installed_for: Some(format!("All Users ({})", architecture)),
+                        installed_for,
                         install_location: program_key.get_value("InstallLocation").ok(),
                         install_source: program_key.get_value("InstallSource").ok(),
                         install_folder_created: program_key.get_value("InstallFolderCreated").ok(),
@@ -262,10 +391,11 @@ fn scan_registry_key(key: &RegKey, programs: &mut Vec<ProgramInfo>, architecture
                         attributes: program_key.get_value("Attributes").ok(),
                         language: program_key.get_value("Language").ok(),
                         parent_key_name: program_key.get_value("ParentKeyName").ok(),
-                        registry_path: format!("HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{}", key_name),
+                        registry_path,
                         program_type: determine_program_type(&program_key),
                         is_windows_installer: program_key.get_value::<u32, _>("WindowsInstaller").unwrap_or(0) == 1,
                         architecture: architecture.to_string(),
+                        installation_source: source.to_string(),
                     };
                     programs.push(program);
                 }
@@ -317,4 +447,36 @@ pub async fn download_icon_from_url(url: String) -> Result<String, String> {
         }
         Err(e) => Err(format!("Failed to download icon: {}", e))
     }
+}
+
+#[tauri::command]
+pub fn test_alternative_locations() -> Result<Vec<String>, String> {
+    let mut found_programs = Vec::new();
+    
+    // Get current user's profile path
+    if let Ok(user_profile) = std::env::var("USERPROFILE") {
+        let appdata_roaming = format!("{}\\AppData\\Roaming", user_profile);
+        let appdata_local = format!("{}\\AppData\\Local", user_profile);
+        
+        // Check for common programs in AppData
+        let common_programs = ["Obsidian", "Discord", "Spotify", "Slack", "VSCode", "Code"];
+        
+        for program in &common_programs {
+            let roaming_path = format!("{}\\{}", appdata_roaming, program);
+            let local_path = format!("{}\\{}", appdata_local, program);
+            
+            if Path::new(&roaming_path).exists() {
+                found_programs.push(format!("Found {} in AppData\\Roaming", program));
+            }
+            if Path::new(&local_path).exists() {
+                found_programs.push(format!("Found {} in AppData\\Local", program));
+            }
+        }
+    }
+    
+    if found_programs.is_empty() {
+        found_programs.push("No common programs found in alternative locations".to_string());
+    }
+    
+    Ok(found_programs)
 } 

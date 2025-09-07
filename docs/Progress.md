@@ -138,8 +138,51 @@
    - User-controlled cache clearing
    - Performance optimization for repeated icon loads
 
+## 2024-12-19 - Phase 4: Alternative Installation Support ✅
+
+### Completed Features
+1. **Enhanced Registry Scanning** ✅
+   - Added HKEY_CURRENT_USER registry scanning for user-installed programs
+   - Implemented support for user-specific installations (no admin rights required)
+   - Enhanced environment variable expansion for AppData paths
+
+2. **Filesystem Scanning** ✅
+   - Added scanning of alternative installation locations:
+     - %APPDATA%\Roaming (user-specific applications)
+     - %APPDATA%\Local (local user applications)
+     - Common portable application directories
+   - Implemented executable detection patterns for portable applications
+   - Added support for programs like Obsidian, Discord, Spotify, etc.
+
+3. **Enhanced Program Information** ✅
+   - Added `installation_source` field to distinguish between:
+     - System: Traditional Program Files installations
+     - User: User registry installations
+     - Filesystem: Portable/alternative location installations
+   - Updated UI to display installation source with color-coded badges
+   - Added installation source filter in the main interface
+
+4. **UI Improvements** ✅
+   - Added installation source badges to program cards and details modal
+   - Implemented installation source filter dropdown
+   - Enhanced program type support for "Portable Application"
+   - Updated architecture types to include "User" and "Unknown"
+
+### Technical Improvements
+1. **Rust Backend**
+   - Enhanced `ProgramInfo` struct with installation source tracking
+   - Implemented `scan_alternative_locations()` function
+   - Added `scan_directory_for_programs()` for filesystem scanning
+   - Created test command `test_alternative_locations()` for debugging
+
+2. **TypeScript Frontend**
+   - Updated `ProgramInfo` interface with new fields
+   - Enhanced filtering logic to support installation source filtering
+   - Added color-coded badges for different installation sources
+   - Improved program card display with installation source information
+
 ### Next Phase Priorities
-1. **Phase 4: Enhanced Functionality**
+1. **Phase 5: Advanced Features**
    - Remote computer scanning
    - External drive scanning
    - Scan profiles and configuration

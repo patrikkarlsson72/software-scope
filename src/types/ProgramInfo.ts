@@ -7,6 +7,9 @@ export interface ProgramInfo {
   installed_for?: string;
   install_location?: string;
   install_source?: string;
+  install_folder_created?: string;
+  install_folder_modified?: string;
+  install_folder_owner?: string;
   publisher?: string;
   uninstall_string?: string;
   change_install_string?: string;
@@ -25,7 +28,8 @@ export interface ProgramInfo {
   language?: string;
   parent_key_name?: string;
   registry_path: string;
-  program_type: 'Application' | 'SystemComponent' | 'Update' | 'Unknown';
+  program_type: 'Application' | 'SystemComponent' | 'Update' | 'Portable Application' | 'Unknown';
   is_windows_installer: boolean;
-  architecture: '32-bit' | '64-bit';
+  architecture: '32-bit' | '64-bit' | 'User' | 'Unknown';
+  installation_source: 'System' | 'User' | 'Filesystem';
 }
