@@ -35,6 +35,7 @@ This document outlines the testing procedures for the SoftwareScope export funct
 - Icon Path, MSI Filename, Estimated Size
 - Attributes, Language, Parent Key Name
 - Registry Path, Program Type, Is Windows Installer, Architecture
+- **Installation Source, Is VF Deployed** (new fields)
 
 ### 2. HTML Export Testing
 **Objective**: Verify HTML export creates a well-formatted, styled report
@@ -48,8 +49,9 @@ This document outlines the testing procedures for the SoftwareScope export funct
 **Expected Results**:
 - Professional styling with proper CSS
 - Summary section showing program counts by type
-- Responsive table layout
+- Responsive table layout with VF deployment status column
 - Color-coded program types
+- VF-deployed applications highlighted in purple
 - Hover effects on table rows
 - Proper HTML escaping of special characters
 

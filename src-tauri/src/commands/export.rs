@@ -48,6 +48,8 @@ fn export_to_csv(programs: &[ProgramInfo], file_path: &str) -> Result<(), Box<dy
         "Program Type",
         "Is Windows Installer",
         "Architecture",
+        "Installation Source",
+        "Is VF Deployed",
     ])?;
 
     // Write data
@@ -82,6 +84,8 @@ fn export_to_csv(programs: &[ProgramInfo], file_path: &str) -> Result<(), Box<dy
             &program.program_type,
             &program.is_windows_installer.to_string(),
             &program.architecture,
+            &program.installation_source,
+            &program.is_vf_deployed.to_string(),
         ])?;
     }
 
@@ -142,6 +146,8 @@ fn export_to_txt(programs: &[ProgramInfo], file_path: &str) -> Result<(), Box<dy
         writeln!(file, "Architecture: {}", program.architecture)?;
         writeln!(file, "Program Type: {}", program.program_type)?;
         writeln!(file, "Is Windows Installer: {}", program.is_windows_installer)?;
+        writeln!(file, "Installation Source: {}", program.installation_source)?;
+        writeln!(file, "Is VF Deployed: {}", program.is_vf_deployed)?;
         writeln!(file, "Registry Path: {}", program.registry_path)?;
         writeln!(file, "\n{}", "=".repeat(50))?;
         writeln!(file)?;
@@ -234,6 +240,8 @@ fn export_to_html(programs: &[ProgramInfo], file_path: &str) -> Result<(), Box<d
                 <th>Install Location</th>
                 <th>Architecture</th>
                 <th>Type</th>
+                <th>Installation Source</th>
+                <th>VF Deployed</th>
                 <th>Size</th>
             </tr>"#,
         chrono::Utc::now().format("%Y-%m-%d %H:%M:%S UTC"),
@@ -264,6 +272,12 @@ fn export_to_html(programs: &[ProgramInfo], file_path: &str) -> Result<(), Box<d
             "Unknown".to_string()
         };
 
+        let vf_deployed_display = if program.is_vf_deployed {
+            "<span style=\"color: #8B5CF6; font-weight: bold;\">Yes</span>"
+        } else {
+            "No"
+        };
+
         write!(file, r#"
         <tr>
             <td><strong>{}</strong></td>
@@ -274,6 +288,8 @@ fn export_to_html(programs: &[ProgramInfo], file_path: &str) -> Result<(), Box<d
             <td>{}</td>
             <td><span class="program-type {}">{}</span></td>
             <td>{}</td>
+            <td>{}</td>
+            <td>{}</td>
         </tr>"#,
             escape_html(&program.name),
             escape_html(program.publisher.as_deref().unwrap_or("")),
@@ -283,6 +299,8 @@ fn export_to_html(programs: &[ProgramInfo], file_path: &str) -> Result<(), Box<d
             program.architecture,
             type_class,
             program.program_type,
+            program.installation_source,
+            vf_deployed_display,
             size_display
         )?;
     }
@@ -380,6 +398,8 @@ fn export_to_xml(programs: &[ProgramInfo], file_path: &str) -> Result<(), Box<dy
         writeln!(file, r#"        <Architecture>{}</Architecture>"#, escape_xml(&program.architecture))?;
         writeln!(file, r#"        <ProgramType>{}</ProgramType>"#, escape_xml(&program.program_type))?;
         writeln!(file, r#"        <IsWindowsInstaller>{}</IsWindowsInstaller>"#, program.is_windows_installer)?;
+        writeln!(file, r#"        <InstallationSource>{}</InstallationSource>"#, escape_xml(&program.installation_source))?;
+        writeln!(file, r#"        <IsVFDeployed>{}</IsVFDeployed>"#, program.is_vf_deployed)?;
         writeln!(file, r#"        <RegistryPath>{}</RegistryPath>"#, escape_xml(&program.registry_path))?;
         writeln!(file, r#"    </Program>"#)?;
     }

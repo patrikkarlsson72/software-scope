@@ -7,7 +7,7 @@
 - **Main Content**  
   - Title: "Installed Programs"  
   - Search bar for program names  
-  - Filter dropdowns (Publisher, Program Type, Time Range)  
+  - Filter dropdowns (Publisher, Program Type, Time Range, VF Deployment)  
   - Sorting options (Name, Publisher, Version)  
   - Export menu (CSV, HTML, XML, Text)  
   - Program display area: Grid of program cards  
@@ -18,18 +18,20 @@
   - Version  
   - Install date  
   - Architecture (32/64-bit)
+  - VF deployment badge (purple) when applicable
 
 ## Core Components
 - **Search Bar**: Real-time filtering of program list.  
-- **Filter Controls**: Dropdowns for publisher, type, and time.  
+- **Filter Controls**: Dropdowns for publisher, type, time, and VF deployment status.  
 - **Sorting Controls**: Buttons for common sort keys.  
-- **Program Cards**: Primary unit of display, each representing a program.  
+- **Program Cards**: Primary unit of display, each representing a program with VF deployment indicators.  
 - **Export Button**: Dropdown with export format choices.  
 - **Settings Panel**: Accessible from header.  
 
 ## Interaction Patterns
 - **Search**: Typing in the search bar instantly filters results.  
 - **Filter/Sort**: Selecting filter or sort options refreshes the program grid.  
+- **VF Filter**: Dropdown with options (All Applications, VF Deployed, Non-VF) for company-specific filtering.  
 - **Program Card Click**: Opens modal with detailed program information (collapsible sections).  
 - **Export**: Clicking export menu prompts file download.  
 - **Settings**: Opens configuration panel (e.g., cache, log folders).  
@@ -42,6 +44,7 @@
   - Cards: White with subtle shadow and rounded corners  
   - Buttons: Neutral gray with hover states  
   - Accent: Brighter blue for primary actions  
+  - VF Badge: Purple for VF-deployed applications  
 - **Icons**: Program icons displayed when available, fallback generic icon if missing.  
 
 ## Mobile, Web App, Desktop Considerations

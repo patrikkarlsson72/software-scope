@@ -15,6 +15,7 @@ A modern Windows software management tool built with Tauri, React, and Rust. Pro
   - Publisher filtering
   - Installation date filtering
   - Program type filtering (Application/Update/System Component)
+  - **VF Company Filter** - Filter applications by deployment status (All/VF Deployed/Non-VF)
   - Customizable sorting
 
 - 📊 Detailed Program Information
@@ -22,6 +23,7 @@ A modern Windows software management tool built with Tauri, React, and Rust. Pro
   - Installation information
   - Registry paths and data
   - System integration details
+  - **VF deployment status** with visual indicators
 
 ### Performance & UI Features
 - ⚡ **Performance Optimized**
@@ -111,7 +113,12 @@ The project is in active development. Recent major updates include:
 - **Fallback Icon System**: 50+ popular applications with CDN icons
 - **Enhanced UI**: Professional appearance with proper program icons
 
-### Phase 4 In Progress 🚧
+### Phase 4 Completed ✅
+- **VF Company Filter**: Filter applications by deployment status with visual indicators
+- **Registry Integration**: Scans HKLM/SOFTWARE/Atea/Applications for VF-deployed applications
+- **Enhanced UI**: Purple badges for VF-deployed applications, integrated filter system
+
+### Phase 5 In Progress 🚧
 - **Comprehensive Settings Panel**: Performance, display, export, and CLI settings
 - **CLI Foundation**: Command-line interface preview with mock commands
 - **Help System**: Built-in documentation and troubleshooting guides
