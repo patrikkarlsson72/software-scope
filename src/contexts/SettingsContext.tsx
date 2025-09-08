@@ -22,6 +22,11 @@ export interface AppSettings {
   defaultExportFormat: 'CSV' | 'HTML' | 'XML' | 'TXT';
   includeAdvancedDetails: boolean;
   
+  // Log File Settings
+  vfLogPath: string;
+  enableVfLogViewer: boolean;
+  logViewerMaxFileSize: number; // in MB
+  
   // Future Features (placeholders)
   enableRemoteScanning: boolean;
   enableExternalDrives: boolean;
@@ -42,6 +47,9 @@ const defaultSettings: AppSettings = {
   maxConcurrentScans: 5,
   defaultExportFormat: 'CSV',
   includeAdvancedDetails: false,
+  vfLogPath: 'C:\\Windows\\VCLogs',
+  enableVfLogViewer: true,
+  logViewerMaxFileSize: 10, // 10MB default
   enableRemoteScanning: false,
   enableExternalDrives: false,
   enableCLI: false,

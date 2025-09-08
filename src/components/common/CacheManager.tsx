@@ -16,7 +16,7 @@ import { iconService } from '../../services/iconService';
 import { IconDebugger } from './IconDebugger';
 
 export const CacheManager: React.FC = () => {
-  const { clearCache, getCacheStats, cacheStats } = useIconCache();
+  const { clearCache, cacheStats } = useIconCache();
   const toast = useToast();
   const [fallbackStats, setFallbackStats] = React.useState(() => iconService.getFallbackCacheStats());
 

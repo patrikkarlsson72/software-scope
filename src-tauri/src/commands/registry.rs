@@ -42,6 +42,7 @@ pub struct ProgramInfo {
     pub is_windows_installer: bool,
     pub architecture: String,
     pub installation_source: String,     // NEW: "System", "User", "Filesystem"
+    pub is_vf_deployed: bool,            // NEW: Indicates if deployed by VF company
 }
 
 #[tauri::command]
@@ -67,6 +68,9 @@ pub fn get_installed_programs() -> Result<Vec<ProgramInfo>, String> {
 
     // Scan alternative installation locations
     scan_alternative_locations(&mut programs);
+
+    // Scan VF company deployed applications
+    scan_vf_deployed_applications(&mut programs);
 
     Ok(programs)
 }
@@ -237,6 +241,29 @@ fn expand_environment_path(path: &str) -> String {
     expanded
 }
 
+fn scan_vf_deployed_applications(programs: &mut Vec<ProgramInfo>) {
+    let hklm = RegKey::predef(HKEY_LOCAL_MACHINE);
+    
+    // Scan HKLM/SOFTWARE/Atea/Applications for VF-deployed applications
+    if let Ok(atea_key) = hklm.open_subkey("SOFTWARE\\Atea\\Applications") {
+        for key_result in atea_key.enum_keys() {
+            if let Ok(key_name) = key_result {
+                if let Ok(app_key) = atea_key.open_subkey(&key_name) {
+                    // Get application details from VF registry
+                    if let Ok(app_name) = app_key.get_value::<String, _>("DisplayName") {
+                        // Mark existing programs as VF-deployed if they match
+                        for program in programs.iter_mut() {
+                            if program.name == app_name {
+                                program.is_vf_deployed = true;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 fn scan_alternative_locations(programs: &mut Vec<ProgramInfo>) {
     // Get current user's profile path
     if let Ok(user_profile) = std::env::var("USERPROFILE") {
@@ -321,6 +348,7 @@ fn scan_directory_for_programs(base_path: &str, programs: &mut Vec<ProgramInfo>,
                                 is_windows_installer: false,
                                 architecture: "Unknown".to_string(),
                                 installation_source: "Filesystem".to_string(),
+                                is_vf_deployed: false, // Portable apps are not VF-deployed
                             };
                             
                             // Check if we already have this program (avoid duplicates)
@@ -396,6 +424,7 @@ fn scan_registry_key(key: &RegKey, programs: &mut Vec<ProgramInfo>, architecture
                         is_windows_installer: program_key.get_value::<u32, _>("WindowsInstaller").unwrap_or(0) == 1,
                         architecture: architecture.to_string(),
                         installation_source: source.to_string(),
+                        is_vf_deployed: false, // Will be updated later by scan_vf_deployed_applications
                     };
                     programs.push(program);
                 }

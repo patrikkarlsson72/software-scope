@@ -2,14 +2,12 @@ import React from 'react';
 import {
   Box,
   VStack,
-  HStack,
   Text,
   Accordion,
   AccordionItem,
   AccordionButton,
   AccordionPanel,
   AccordionIcon,
-  Link,
   Badge,
   Code,
   Divider,
@@ -17,7 +15,7 @@ import {
   ListItem,
   ListIcon,
 } from '@chakra-ui/react';
-import { CheckIcon, ExternalLinkIcon } from '@chakra-ui/icons';
+import { CheckIcon } from '@chakra-ui/icons';
 
 export const HelpPanel: React.FC = () => {
   return (

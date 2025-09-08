@@ -32,4 +32,5 @@ export interface ProgramInfo {
   is_windows_installer: boolean;
   architecture: '32-bit' | '64-bit' | 'User' | 'Unknown';
   installation_source: 'System' | 'User' | 'Filesystem';
+  is_vf_deployed: boolean;
 }

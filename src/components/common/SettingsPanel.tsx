@@ -31,6 +31,7 @@ import {
   AlertIcon,
   AlertTitle,
   AlertDescription,
+  Input,
 } from '@chakra-ui/react';
 import { useIconCache } from '../../hooks/useIconCache';
 import { iconService } from '../../services/iconService';
@@ -41,7 +42,7 @@ import { useSettings } from '../../contexts/SettingsContext';
 
 
 export const SettingsPanel: React.FC = () => {
-  const { clearCache, getCacheStats, cacheStats } = useIconCache();
+  const { clearCache, cacheStats } = useIconCache();
   const { settings, updateSetting, resetSettings } = useSettings();
   const toast = useToast();
   const [fallbackStats, setFallbackStats] = useState(() => iconService.getFallbackCacheStats());
@@ -83,6 +84,7 @@ export const SettingsPanel: React.FC = () => {
           <Tab>Cache & Performance</Tab>
           <Tab>Display</Tab>
           <Tab>Export</Tab>
+          <Tab>VF Logs</Tab>
           <Tab>CLI</Tab>
           <Tab>Help</Tab>
           <Tab>Advanced</Tab>
@@ -290,6 +292,67 @@ export const SettingsPanel: React.FC = () => {
                 />
                 <FormHelperText>Include registry details and advanced information in exports</FormHelperText>
               </FormControl>
+            </VStack>
+          </TabPanel>
+
+          {/* VF Logs Tab */}
+          <TabPanel>
+            <VStack spacing={6} align="stretch">
+              <Text fontSize="lg" fontWeight="bold">VF Deployment Logs</Text>
+              
+              <Alert status="info">
+                <AlertIcon />
+                <Box>
+                  <AlertTitle>VF Log Viewer</AlertTitle>
+                  <AlertDescription>
+                    Configure settings for viewing VF deployment logs directly in the application.
+                  </AlertDescription>
+                </Box>
+              </Alert>
+
+              <FormControl>
+                <FormLabel>Enable VF Log Viewer</FormLabel>
+                <Switch
+                  isChecked={settings.enableVfLogViewer}
+                  onChange={(e) => handleSettingChange('enableVfLogViewer', e.target.checked)}
+                />
+                <FormHelperText>Enable viewing of VF deployment logs in program details</FormHelperText>
+              </FormControl>
+
+              <FormControl>
+                <FormLabel>VF Log Directory Path</FormLabel>
+                <Input
+                  value={settings.vfLogPath}
+                  onChange={(e) => handleSettingChange('vfLogPath', e.target.value)}
+                  placeholder="C:\Windows\VCLogs"
+                />
+                <FormHelperText>Directory path where VF deployment logs are stored</FormHelperText>
+              </FormControl>
+
+              <FormControl>
+                <FormLabel>Maximum Log File Size (MB)</FormLabel>
+                <NumberInput
+                  value={settings.logViewerMaxFileSize}
+                  onChange={(_, value) => handleSettingChange('logViewerMaxFileSize', value)}
+                  min={1}
+                  max={100}
+                >
+                  <NumberInputField />
+                  <NumberInputStepper>
+                    <NumberIncrementStepper />
+                    <NumberDecrementStepper />
+                  </NumberInputStepper>
+                </NumberInput>
+                <FormHelperText>Maximum file size to load in the log viewer (larger files will show a warning)</FormHelperText>
+              </FormControl>
+
+              <Box p={4} borderWidth="1px" borderRadius="md" bg="blue.50">
+                <Text fontSize="sm" color="blue.700">
+                  <strong>Note:</strong> The VF log viewer will automatically detect and display log files 
+                  for VF-deployed applications. Log files are typically named with the application 
+                  identifier and timestamp.
+                </Text>
+              </Box>
             </VStack>
           </TabPanel>
 

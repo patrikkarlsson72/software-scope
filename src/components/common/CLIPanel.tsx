@@ -6,7 +6,6 @@ import {
   Text,
   Input,
   Button,
-  Textarea,
   useToast,
   Badge,
   Alert,

@@ -1,5 +1,5 @@
 import { invoke } from '@tauri-apps/api/tauri';
-import { findIconForProgram, getGenericIconForType, IconInfo } from '../data/iconDatabase';
+import { findIconForProgram, getGenericIconForType } from '../data/iconDatabase';
 
 export interface FallbackIconCache {
   [key: string]: {

@@ -1,6 +1,8 @@
-import { Box, Flex, Heading, Button, useDisclosure } from '@chakra-ui/react';
-import { SettingsIcon } from '@chakra-ui/icons';
+import { Box, Flex, Heading, Button, useDisclosure, HStack } from '@chakra-ui/react';
+import { SettingsIcon, ViewIcon } from '@chakra-ui/icons';
 import { SettingsPanel } from '../common/SettingsPanel';
+import { LogViewer } from '../common/LogViewer';
+import { useSettings } from '../../contexts/SettingsContext';
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -8,21 +10,37 @@ interface MainLayoutProps {
 
 export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const { isOpen, onToggle } = useDisclosure();
+  const { isOpen: isLogViewerOpen, onOpen: onLogViewerOpen, onClose: onLogViewerClose } = useDisclosure();
+  const { settings } = useSettings();
 
   return (
     <Flex direction="column" minH="100vh">
       <Box as="header" bg="brand.500" color="white" px={8} py={4} boxShadow="sm">
         <Flex justify="space-between" align="center">
           <Heading size="lg">Software Scope</Heading>
-          <Button
-            leftIcon={<SettingsIcon />}
-            variant="ghost"
-            color="white"
-            _hover={{ bg: 'whiteAlpha.200' }}
-            onClick={onToggle}
-          >
-            Settings
-          </Button>
+          <HStack spacing={2}>
+            {settings.enableVfLogViewer && (
+              <Button
+                leftIcon={<ViewIcon />}
+                variant="ghost"
+                color="white"
+                _hover={{ bg: 'whiteAlpha.200' }}
+                onClick={onLogViewerOpen}
+                size="sm"
+              >
+                VF Logs
+              </Button>
+            )}
+            <Button
+              leftIcon={<SettingsIcon />}
+              variant="ghost"
+              color="white"
+              _hover={{ bg: 'whiteAlpha.200' }}
+              onClick={onToggle}
+            >
+              Settings
+            </Button>
+          </HStack>
         </Flex>
       </Box>
       
@@ -35,6 +53,12 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       <Box as="main" flex="1" p={8} bg="brand.50">
         {children}
       </Box>
+
+      {/* VF Log Viewer Modal */}
+      <LogViewer
+        isOpen={isLogViewerOpen}
+        onClose={onLogViewerClose}
+      />
     </Flex>
   );
 };

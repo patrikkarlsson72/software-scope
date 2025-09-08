@@ -26,8 +26,10 @@ import {
   Divider,
 } from '@chakra-ui/react';
 import { ProgramInfo } from '../../types/ProgramInfo';
-import { ExternalLinkIcon, ChevronDownIcon, ChevronUpIcon } from '@chakra-ui/icons';
+import { ExternalLinkIcon, ChevronDownIcon, ChevronUpIcon, ViewIcon } from '@chakra-ui/icons';
 import { ProgramIcon } from '../common/ProgramIcon';
+import { LogViewer } from '../common/LogViewer';
+import { useSettings } from '../../contexts/SettingsContext';
 
 
 interface ProgramDetailsProps {
@@ -38,7 +40,9 @@ interface ProgramDetailsProps {
 
 export const ProgramDetails: React.FC<ProgramDetailsProps> = ({ program, isOpen, onClose }) => {
   const toast = useToast();
+  const { settings } = useSettings();
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [isLogViewerOpen, setIsLogViewerOpen] = useState(false);
 
   const handleCopy = (text: string, what: string) => {
     navigator.clipboard.writeText(text);
@@ -57,9 +61,9 @@ export const ProgramDetails: React.FC<ProgramDetailsProps> = ({ program, isOpen,
         <ModalHeader>
           <HStack spacing={4} align="flex-start">
             <ProgramIcon 
-              iconPath={program.icon_path} 
               programName={program.name} 
-              size="32px" 
+              size="32px"
+              publisher={program.publisher}
             />
             <VStack align="stretch" spacing={2}>
               <Text>{program.name}</Text>
@@ -77,6 +81,9 @@ export const ProgramDetails: React.FC<ProgramDetailsProps> = ({ program, isOpen,
                 </Badge>
                 {program.is_windows_installer && (
                   <Badge colorScheme="purple">Windows Installer</Badge>
+                )}
+                {program.is_vf_deployed && (
+                  <Badge colorScheme="orange">VF Deployed</Badge>
                 )}
               </HStack>
             </VStack>
@@ -331,6 +338,19 @@ export const ProgramDetails: React.FC<ProgramDetailsProps> = ({ program, isOpen,
               </Collapse>
             </Accordion>
 
+            {/* VF Log Viewer Button */}
+            {program.is_vf_deployed && settings.enableVfLogViewer && (
+              <Button
+                onClick={() => setIsLogViewerOpen(true)}
+                size="sm"
+                colorScheme="orange"
+                leftIcon={<ViewIcon />}
+                variant="outline"
+              >
+                View VF Deployment Logs
+              </Button>
+            )}
+
             {/* Show More/Less Button */}
             <Button
               onClick={() => setShowAdvanced(!showAdvanced)}
@@ -343,6 +363,13 @@ export const ProgramDetails: React.FC<ProgramDetailsProps> = ({ program, isOpen,
           </VStack>
         </ModalBody>
       </ModalContent>
+
+      {/* VF Log Viewer Modal */}
+      <LogViewer
+        programName={program.name}
+        isOpen={isLogViewerOpen}
+        onClose={() => setIsLogViewerOpen(false)}
+      />
     </Modal>
   );
 }; 

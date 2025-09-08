@@ -37,6 +37,7 @@ type DateFilter = 'all' | 'last7days' | 'last30days' | 'last90days' | 'custom';
 type ProgramType = 'all' | 'Application' | 'SystemComponent' | 'Update' | 'Portable Application';
 type Architecture = 'all' | '32-bit' | '64-bit' | 'User' | 'Unknown';
 type InstallationSource = 'all' | 'System' | 'User' | 'Filesystem';
+type VFDeployment = 'all' | 'vf-deployed' | 'non-vf';
 
 export const ProgramList: React.FC = () => {
   const { settings } = useSettings();
@@ -57,6 +58,7 @@ export const ProgramList: React.FC = () => {
   const [isSearching, setIsSearching] = useState(false);
   const [architecture, setArchitecture] = useState<Architecture>('all');
   const [installationSource, setInstallationSource] = useState<InstallationSource>('all');
+  const [vfDeployment, setVfDeployment] = useState<VFDeployment>('all');
   const [selectedProgram, setSelectedProgram] = useState<ProgramInfo | null>(null);
 
   const debouncedSearchTerm = useDebounce(searchTerm);
@@ -141,8 +143,11 @@ export const ProgramList: React.FC = () => {
         const matchesType = programType === 'all' || program.program_type === programType;
         const matchesArchitecture = architecture === 'all' || program.architecture === architecture;
         const matchesInstallationSource = installationSource === 'all' || program.installation_source === installationSource;
+        const matchesVFDeployment = vfDeployment === 'all' || 
+          (vfDeployment === 'vf-deployed' && program.is_vf_deployed) ||
+          (vfDeployment === 'non-vf' && !program.is_vf_deployed);
 
-        return matchesSearch && matchesPublisher && matchesDate && matchesType && matchesArchitecture && matchesInstallationSource;
+        return matchesSearch && matchesPublisher && matchesDate && matchesType && matchesArchitecture && matchesInstallationSource && matchesVFDeployment;
       })
       .sort((a, b) => {
         const aValue = a[sortField] || '';
@@ -162,6 +167,7 @@ export const ProgramList: React.FC = () => {
     sortDirection,
     architecture,
     installationSource,
+    vfDeployment,
   ]);
 
   // Fetch programs
@@ -338,6 +344,16 @@ export const ProgramList: React.FC = () => {
             <option value="Filesystem">Filesystem</option>
           </Select>
 
+          <Select
+            value={vfDeployment}
+            onChange={(e) => setVfDeployment(e.target.value as VFDeployment)}
+            width="150px"
+          >
+            <option value="all">All Applications</option>
+            <option value="vf-deployed">VF Deployed</option>
+            <option value="non-vf">Non-VF</option>
+          </Select>
+
           <Text ml="auto" color="gray.600" fontSize="sm">
             Showing {filteredAndSortedPrograms.length} of {programs.length} programs
           </Text>
@@ -429,6 +445,11 @@ export const ProgramList: React.FC = () => {
                   >
                     {program.installation_source}
                   </Badge>
+                  {program.is_vf_deployed && (
+                    <Badge size="sm" colorScheme="purple">
+                      VF Deployed
+                    </Badge>
+                  )}
                 </HStack>
               </CardBody>
             </Card>
