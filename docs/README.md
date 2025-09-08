@@ -11,6 +11,7 @@ Welcome to the Software Scope documentation. This directory contains comprehensi
 - **[Progress](./Progress.md)** - Detailed development progress and completed features
 
 ### Feature Documentation
+- **[Icon System Guide](./Icon-System-Guide.md)** - Comprehensive guide for the icon system architecture and usage
 - **[VF Log Viewer Guide](./VF-Log-Viewer-Guide.md)** - Comprehensive guide for the VF log viewing feature
 - **[Export Testing Guide](./Export-Testing-Guide.md)** - Testing procedures for export functionality
 - **[User Interface Design Document (UIDD)](./UIDD.md)** - UI/UX design specifications
@@ -97,6 +98,7 @@ docs/
 ├── SRS.md                       # Software Requirements Specification
 ├── ProjectPlan.md               # Development roadmap
 ├── Progress.md                  # Development progress tracking
+├── Icon-System-Guide.md         # Icon system architecture and usage guide
 ├── VF-Log-Viewer-Guide.md       # VF Log Viewer user guide
 ├── Export-Testing-Guide.md      # Export functionality testing
 ├── UIDD.md                      # User Interface Design Document
