@@ -9,6 +9,7 @@
   - Uninstall string (used to remove the application)
   - Quiet uninstall string (used for silent uninstallations)
   - Registry key path
+  - VF deployment status (for company-deployed applications)
 
 ## 2. Multiple Scanning Options
 - Scans both the current user and all user profiles for installed applications.
@@ -23,6 +24,8 @@
 ## 5. Filter and Search Capabilities
 - Offers advanced filtering options to narrow down the displayed programs based on criteria like publisher, name, or installation date.
 - Includes a search function for quickly finding specific applications.
+- **VF Company Filter**: Filter applications by deployment status (All, VF Deployed, Non-VF).
+- Visual indicators with color-coded badges for easy identification of VF-deployed applications.
 
 ## 6. Export and Report Generation
 - Allows exporting program lists to various file formats, including:

@@ -181,8 +181,54 @@
    - Added color-coded badges for different installation sources
    - Improved program card display with installation source information
 
+## 2024-12-19 - Phase 5: VF Company Filter Implementation ✅
+
+### Completed Features
+1. **VF Company Detection** ✅
+   - Added `is_vf_deployed` field to ProgramInfo struct in Rust backend
+   - Implemented registry scanning for `HKLM/SOFTWARE/Atea/Applications`
+   - Created `scan_vf_deployed_applications()` function to identify VF-deployed applications
+   - Integrated VF detection with existing program scanning workflow
+
+2. **VF Filter UI** ✅
+   - Added VF deployment filter dropdown with three options:
+     - "All Applications" (default)
+     - "VF Deployed" (shows only VF-deployed applications)
+     - "Non-VF" (shows only non-VF applications)
+   - Updated filtering logic to support VF deployment filtering
+   - Added VF deployment filter to dependency array for proper reactivity
+
+3. **Visual Indicators** ✅
+   - Added purple "VF Deployed" badges to program cards for easy identification
+   - Integrated VF deployment status into program details modal
+   - Enhanced program card display with VF deployment information
+
+4. **TypeScript Integration** ✅
+   - Updated ProgramInfo interface to include `is_vf_deployed: boolean` field
+   - Added VFDeployment type definition for filter options
+   - Fixed TypeScript compilation errors and unused imports
+
+### Technical Improvements
+1. **Rust Backend**
+   - Enhanced ProgramInfo struct with VF deployment tracking
+   - Implemented efficient registry scanning for Atea applications
+   - Added proper error handling for VF registry access
+   - Maintained backward compatibility with existing functionality
+
+2. **React Frontend**
+   - Created modular VF filter component
+   - Implemented proper state management for VF filtering
+   - Added visual feedback with color-coded badges
+   - Enhanced user experience with intuitive filter options
+
+3. **Registry Integration**
+   - Scans `HKLM/SOFTWARE/Atea/Applications` registry key as requested
+   - Matches VF-deployed applications by DisplayName
+   - Efficiently marks existing programs as VF-deployed
+   - Handles registry access errors gracefully
+
 ### Next Phase Priorities
-1. **Phase 5: Advanced Features**
+1. **Phase 6: Advanced Features**
    - Remote computer scanning
    - External drive scanning
    - Scan profiles and configuration
@@ -192,6 +238,11 @@
    - HTML, XML, CSV, and Text export formats
    - Batch processing capabilities
    - Report generation
+
+3. **VF-Specific Features**
+   - VF deployment log viewer integration
+   - Enhanced VF application management
+   - VF-specific export templates
 
 ## References
 - Full feature list: [WantedFeatures.md](./WantedFeatures.md) 

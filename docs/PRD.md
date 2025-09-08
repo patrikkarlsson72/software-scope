@@ -16,11 +16,12 @@ SoftwareScope is a modern Windows software management tool designed for IT admin
   - Registry keys and associated values
   - Uninstall and quiet uninstall commands
   - Architecture (32-bit/64-bit)
-- Advanced search and filtering (publisher, date range, program type).
+- Advanced search and filtering (publisher, date range, program type, VF deployment status).
 - Export results (CSV, HTML, XML, Text).
 - Support for silent/unattended uninstallation.
 - Program icon display with caching.
 - Add custom search paths for installation logs (user-defined folders).
+- VF company filter for identifying company-deployed applications.
 - Remote scanning (planned).
 - External drive scanning (planned).
 - Command-line interface for automation (planned).
@@ -30,7 +31,8 @@ SoftwareScope is a modern Windows software management tool designed for IT admin
 - **As an IT admin**, I want to copy uninstall strings and registry paths so that I can use them in scripts.
 - **As a support engineer**, I want to define custom log folders so that I can directly access installation logs for troubleshooting.
 - **As a compliance officer**, I want to export software inventories so that I can provide audit documentation.
-- **As an advanced user**, I want to see both 32-bit and 64-bit applications so that I understand my system’s full software footprint.
+- **As an advanced user**, I want to see both 32-bit and 64-bit applications so that I understand my system's full software footprint.
+- **As a VF IT administrator**, I want to filter applications by deployment status so that I can quickly identify which applications were deployed by our company.
 
 ## 5. User Interface
 - **Current Layout** (to be preserved):  

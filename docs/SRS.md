@@ -51,9 +51,9 @@
 
 ## API Design
 - **Tauri Commands** (Rust → JS bridge):  
-  - `scan_registry()` → Returns list of installed programs.  
+  - `get_installed_programs()` → Returns list of installed programs with VF deployment status.  
   - `get_program_details(id)` → Returns extended details.  
-  - `export_data(format)` → Exports current results (CSV/HTML/XML/Text).  
+  - `export_programs(format)` → Exports current results (CSV/HTML/XML/Text).  
   - `clear_icon_cache()` → Clears cached icons.  
   - Future: `scan_remote(host)` → Retrieve data from remote machine.  
 
@@ -72,6 +72,7 @@ Planned structure for persistence (if added later):
 | quiet_uninstall_string |
 | registry_key |
 | architecture (32/64-bit) |
+| is_vf_deployed (boolean) |
 +----------------------------------+
 |
 | 1..N
