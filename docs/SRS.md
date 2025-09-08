@@ -46,7 +46,8 @@
 - **Main Route**: Installed Programs view.  
 - **Modal Routes** (UI overlays):  
   - Program Details Modal (collapsible sections).  
-  - Settings Panel (cache management, log path configuration).  
+  - Settings Panel (cache management, log path configuration).
+  - VF Log Viewer Modal (log file browsing and viewing).  
 - Navigation is shallow; no multi-page routing required.  
 
 ## API Design
@@ -55,6 +56,9 @@
   - `get_program_details(id)` → Returns extended details.  
   - `export_programs(format)` → Exports current results (CSV/HTML/XML/Text).  
   - `clear_icon_cache()` → Clears cached icons.  
+  - `scan_vf_log_directory(config)` → Scans VF log directory for log files.
+  - `read_log_file(file_path, max_lines)` → Reads log file content.
+  - `get_log_file_info(file_path)` → Gets log file metadata.
   - Future: `scan_remote(host)` → Retrieve data from remote machine.  
 
 ## Database Design ERD

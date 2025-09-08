@@ -63,6 +63,14 @@ A modern Windows software management tool built with Tauri, React, and Rust. Pro
   - Feature explanations
   - Future roadmap information
 
+- 📋 **VF Log Viewer** ⭐ **NEW**
+  - Integrated VF deployment log viewer
+  - Direct access to `C:\Windows\VCLogs` directory
+  - Smart log file detection and program name extraction
+  - Advanced filtering and search capabilities
+  - Syntax highlighting for log content
+  - No more dependency on cmtrace!
+
 ### Additional Features
 - 📋 Copy functionality for paths and commands
 - 🎯 Collapsible information sections
@@ -118,11 +126,17 @@ The project is in active development. Recent major updates include:
 - **Registry Integration**: Scans HKLM/SOFTWARE/Atea/Applications for VF-deployed applications
 - **Enhanced UI**: Purple badges for VF-deployed applications, integrated filter system
 
-### Phase 5 In Progress 🚧
+### Phase 5 Completed ✅
 - **Comprehensive Settings Panel**: Performance, display, export, and CLI settings
 - **CLI Foundation**: Command-line interface preview with mock commands
 - **Help System**: Built-in documentation and troubleshooting guides
 - **Settings Integration**: Application-wide settings management
+
+### Phase 6 Completed ✅ ⭐ **NEW**
+- **VF Log Viewer Integration**: Complete log viewing solution for VF deployments
+- **Log File Management**: Smart scanning and filtering of VF deployment logs
+- **Enhanced Program Details**: Direct log access from program information
+- **Performance Optimized**: Efficient handling of large log files
 
 ### Upcoming Features 🔮
 - Remote computer scanning
@@ -130,6 +144,16 @@ The project is in active development. Recent major updates include:
 - Full CLI implementation
 - Batch processing capabilities
 - Advanced analytics and reporting
+
+## Documentation
+
+Comprehensive documentation is available in the [`docs/`](./docs/) directory:
+
+- **[Documentation Overview](./docs/README.md)** - Complete documentation index
+- **[VF Log Viewer Guide](./docs/VF-Log-Viewer-Guide.md)** - Detailed guide for the VF log viewing feature
+- **[Product Requirements](./docs/PRD.md)** - Product requirements and user stories
+- **[Technical Architecture](./docs/SRS.md)** - System design and technical specifications
+- **[Development Progress](./docs/Progress.md)** - Detailed progress tracking and completed features
 
 ## Contributing
 Contributions are welcome! Please feel free to submit a Pull Request.

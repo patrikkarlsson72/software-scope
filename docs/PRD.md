@@ -22,6 +22,7 @@ SoftwareScope is a modern Windows software management tool designed for IT admin
 - Program icon display with caching.
 - Add custom search paths for installation logs (user-defined folders).
 - VF company filter for identifying company-deployed applications.
+- **VF Log Viewer** - Integrated log viewing for VF deployment logs from `C:\Windows\VCLogs`.
 - Remote scanning (planned).
 - External drive scanning (planned).
 - Command-line interface for automation (planned).
@@ -33,6 +34,7 @@ SoftwareScope is a modern Windows software management tool designed for IT admin
 - **As a compliance officer**, I want to export software inventories so that I can provide audit documentation.
 - **As an advanced user**, I want to see both 32-bit and 64-bit applications so that I understand my system's full software footprint.
 - **As a VF IT administrator**, I want to filter applications by deployment status so that I can quickly identify which applications were deployed by our company.
+- **As a support engineer**, I want to view VF deployment logs directly in the application so that I can troubleshoot installations without opening cmtrace.
 
 ## 5. User Interface
 - **Current Layout** (to be preserved):  
@@ -42,6 +44,7 @@ SoftwareScope is a modern Windows software management tool designed for IT admin
     - Installation Details  
     - Uninstall Information  
     - Additional Information  
-    - Advanced Details (expandable)  
+    - Advanced Details (expandable)
+    - **VF Log Viewer** (for VF-deployed applications)  
 - **Design Philosophy**: Clean, modern, consistent styling using Chakra UI and React components.
 - **Navigation**: Simple, with minimal menus. Primary workflow is through the searchable/filterable list of installed programs.
