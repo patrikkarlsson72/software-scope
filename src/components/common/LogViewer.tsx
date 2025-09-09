@@ -277,9 +277,9 @@ export const LogViewer: React.FC<LogViewerProps> = ({ programName, isOpen, onClo
             <Divider />
 
             {/* File List and Content */}
-            <HStack spacing={4} align="stretch" flex="1">
+            <HStack spacing={4} align="stretch" flex="1" minH="0">
               {/* File List */}
-              <Box w="40%" borderWidth="1px" borderRadius="md" p={3} overflowY="auto">
+              <Box w="40%" borderWidth="1px" borderRadius="md" p={3} overflowY="auto" maxH="100%">
                 <Text fontSize="sm" fontWeight="bold" mb={3} color="gray.600">
                   Log Files ({filteredAndSortedFiles.length})
                 </Text>
@@ -339,7 +339,7 @@ export const LogViewer: React.FC<LogViewerProps> = ({ programName, isOpen, onClo
               </Box>
 
               {/* Log Content */}
-              <Box w="60%" borderWidth="1px" borderRadius="md" p={3} overflowY="auto">
+              <Box w="60%" borderWidth="1px" borderRadius="md" p={3} overflowY="auto" maxH="100%">
                 {selectedFile ? (
                   <VStack spacing={3} align="stretch">
                     <HStack justify="space-between">
