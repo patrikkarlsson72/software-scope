@@ -22,7 +22,9 @@ fn main() {
             is_cli_enabled,
             scan_vf_log_directory,
             read_log_file,
-            get_log_file_info
+            get_log_file_info,
+            copy_file_to_temp,
+            open_file_with_editor
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

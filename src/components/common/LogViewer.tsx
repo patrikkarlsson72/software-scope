@@ -22,7 +22,6 @@ import {
   ModalHeader,
   ModalBody,
   ModalCloseButton,
-  Code,
   Divider,
   Tooltip,
   IconButton,
@@ -65,6 +64,7 @@ export const LogViewer: React.FC<LogViewerProps> = ({ programName, isOpen, onClo
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState<'name' | 'date' | 'size'>('date');
   const [filterBy, setFilterBy] = useState<'all' | 'vf' | 'program'>('all');
+  const [showLineNumbers, setShowLineNumbers] = useState(true);
 
   const config: LogViewerConfig = {
     log_directory: settings.vfLogPath,
@@ -106,10 +106,21 @@ export const LogViewer: React.FC<LogViewerProps> = ({ programName, isOpen, onClo
       });
       setLogContent(content);
     } catch (error) {
+      const errorMessage = String(error);
+      let userFriendlyMessage = 'Failed to read log file';
+      
+      if (errorMessage.includes('UTF-8')) {
+        userFriendlyMessage = 'File contains non-UTF-8 characters. Attempting to decode with alternative encodings...';
+      } else if (errorMessage.includes('permission')) {
+        userFriendlyMessage = 'Permission denied. The file may be in use by another process.';
+      } else if (errorMessage.includes('not found')) {
+        userFriendlyMessage = 'File not found. It may have been moved or deleted.';
+      }
+      
       toast({
         title: 'Error Loading Log Content',
-        description: `Failed to read log file: ${error}`,
-        status: 'error',
+        description: userFriendlyMessage,
+        status: 'warning',
         duration: 5000,
       });
       setLogContent('');
@@ -123,10 +134,34 @@ export const LogViewer: React.FC<LogViewerProps> = ({ programName, isOpen, onClo
 
     // Filter by program name if specified
     if (programName) {
-      filtered = filtered.filter(file => 
-        file.program_name?.toLowerCase().includes(programName.toLowerCase()) ||
-        file.filename.toLowerCase().includes(programName.toLowerCase())
-      );
+      // Normalize the program name for better matching
+      const normalizedProgramName = programName
+        .toLowerCase()
+        .replace(/[()]/g, '') // Remove parentheses
+        .replace(/\s+/g, '') // Remove spaces
+        .replace(/[^a-z0-9]/g, ''); // Keep only alphanumeric characters
+      
+      filtered = filtered.filter(file => {
+        // Check if the program name matches (case-insensitive)
+        const programMatch = file.program_name?.toLowerCase().includes(programName.toLowerCase()) ||
+                           file.filename.toLowerCase().includes(programName.toLowerCase());
+        
+        // Also check normalized versions for better matching
+        const normalizedFileProgram = file.program_name?.toLowerCase()
+          .replace(/[()]/g, '')
+          .replace(/\s+/g, '')
+          .replace(/[^a-z0-9]/g, '') || '';
+        
+        const normalizedFilename = file.filename.toLowerCase()
+          .replace(/[()]/g, '')
+          .replace(/\s+/g, '')
+          .replace(/[^a-z0-9]/g, '');
+        
+        const normalizedMatch = normalizedFileProgram.includes(normalizedProgramName) ||
+                               normalizedFilename.includes(normalizedProgramName);
+        
+        return programMatch || normalizedMatch;
+      });
     }
 
     // Filter by type
@@ -172,21 +207,173 @@ export const LogViewer: React.FC<LogViewerProps> = ({ programName, isOpen, onClo
     return new Date(dateString).toLocaleString();
   };
 
+
+  // Check if a line contains error patterns
+  const isErrorLine = (line: string): boolean => {
+    const errorPatterns = [
+      /error/i,
+      /failed/i,
+      /exception/i,
+      /fatal/i,
+      /critical/i,
+      /type="3"/, // CMTrace error type
+      /\[ERROR\]/i,
+      /\[FATAL\]/i
+    ];
+    
+    return errorPatterns.some(pattern => pattern.test(line));
+  };
+
   const downloadLogFile = async (file: LogFileInfo) => {
     try {
-      // In a real implementation, you might want to copy the file to a user-accessible location
       toast({
         title: 'Download Started',
         description: `Preparing ${file.filename} for download...`,
         status: 'info',
         duration: 2000,
       });
+
+      // Read the file content
+      const content = await invoke<string>('read_log_file', { 
+        filePath: file.full_path,
+        maxLines: undefined // Get the full file
+      });
+
+      // Create a blob and download it
+      const blob = new Blob([content], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      
+      // Create a temporary download link
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = file.filename;
+      document.body.appendChild(link);
+      link.click();
+      
+      // Clean up
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      toast({
+        title: 'Download Complete',
+        description: `${file.filename} has been downloaded to your Downloads folder`,
+        status: 'success',
+        duration: 3000,
+      });
     } catch (error) {
       toast({
         title: 'Download Failed',
-        description: `Failed to download ${file.filename}`,
+        description: `Failed to download ${file.filename}: ${error}`,
         status: 'error',
+        duration: 5000,
+      });
+    }
+  };
+
+  const openInExternalEditor = async (file: LogFileInfo) => {
+    try {
+      // First, copy the file to a temporary location that's accessible
+      const tempPath = await invoke<string>('copy_file_to_temp', { 
+        sourcePath: file.full_path,
+        filename: file.filename
+      });
+
+      // Show a dialog to let user choose the editor
+      const editorChoice = await new Promise<string>((resolve) => {
+        const modal = document.createElement('div');
+        modal.style.cssText = `
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: rgba(0,0,0,0.5);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 10000;
+        `;
+        
+        const dialog = document.createElement('div');
+        dialog.style.cssText = `
+          background: white;
+          padding: 20px;
+          border-radius: 8px;
+          box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+          max-width: 400px;
+          width: 90%;
+        `;
+        
+        dialog.innerHTML = `
+          <h3 style="margin: 0 0 15px 0; color: #333;">Choose Editor</h3>
+          <p style="margin: 0 0 15px 0; color: #666;">Select which tool to open the log file with:</p>
+          <div style="display: flex; flex-direction: column; gap: 10px;">
+            <button data-editor="cmtrace" style="padding: 10px; border: 1px solid #ddd; background: #f8f9fa; border-radius: 4px; cursor: pointer;">
+              📊 CMTrace (Configuration Manager Trace)
+            </button>
+            <button data-editor="notepad++" style="padding: 10px; border: 1px solid #ddd; background: #f8f9fa; border-radius: 4px; cursor: pointer;">
+              📝 Notepad++
+            </button>
+            <button data-editor="notepad" style="padding: 10px; border: 1px solid #ddd; background: #f8f9fa; border-radius: 4px; cursor: pointer;">
+              📄 Notepad
+            </button>
+            <button data-editor="vscode" style="padding: 10px; border: 1px solid #ddd; background: #f8f9fa; border-radius: 4px; cursor: pointer;">
+              💻 Visual Studio Code
+            </button>
+            <button data-editor="default" style="padding: 10px; border: 1px solid #ddd; background: #f8f9fa; border-radius: 4px; cursor: pointer;">
+              🔧 Default System Editor
+            </button>
+          </div>
+          <div style="margin-top: 15px; text-align: right;">
+            <button id="cancel-btn" style="padding: 8px 16px; border: 1px solid #ddd; background: white; border-radius: 4px; cursor: pointer; margin-right: 10px;">
+              Cancel
+            </button>
+          </div>
+        `;
+        
+        modal.appendChild(dialog);
+        document.body.appendChild(modal);
+        
+        // Handle button clicks
+        const buttons = dialog.querySelectorAll('button[data-editor]');
+        buttons.forEach(btn => {
+          btn.addEventListener('click', () => {
+            const editor = btn.getAttribute('data-editor');
+            document.body.removeChild(modal);
+            resolve(editor || 'default');
+          });
+        });
+        
+        // Handle cancel
+        dialog.querySelector('#cancel-btn')?.addEventListener('click', () => {
+          document.body.removeChild(modal);
+          resolve('cancel');
+        });
+      });
+
+      if (editorChoice === 'cancel') {
+        return;
+      }
+
+      // Open the file with the selected editor
+      await invoke('open_file_with_editor', {
+        filePath: tempPath,
+        editor: editorChoice
+      });
+
+      toast({
+        title: 'File Opened',
+        description: `Opening ${file.filename} with ${editorChoice === 'cmtrace' ? 'CMTrace' : editorChoice === 'notepad++' ? 'Notepad++' : editorChoice === 'vscode' ? 'VS Code' : editorChoice === 'notepad' ? 'Notepad' : 'default editor'}...`,
+        status: 'success',
         duration: 3000,
+      });
+
+    } catch (error) {
+      toast({
+        title: 'Failed to Open File',
+        description: `Could not open ${file.filename} in external editor: ${error}`,
+        status: 'error',
+        duration: 5000,
       });
     }
   };
@@ -263,6 +450,15 @@ export const LogViewer: React.FC<LogViewerProps> = ({ programName, isOpen, onClo
                 <option value="name">Sort by Name</option>
                 <option value="size">Sort by Size</option>
               </Select>
+
+              <Button
+                size="sm"
+                variant={showLineNumbers ? "solid" : "outline"}
+                colorScheme="blue"
+                onClick={() => setShowLineNumbers(!showLineNumbers)}
+              >
+                {showLineNumbers ? "Hide Line Numbers" : "Show Line Numbers"}
+              </Button>
 
               <Button
                 size="sm"
@@ -360,15 +556,7 @@ export const LogViewer: React.FC<LogViewerProps> = ({ programName, isOpen, onClo
                             size="sm"
                             icon={<ExternalLinkIcon />}
                             aria-label="Open Externally"
-                            onClick={() => {
-                              // In a real implementation, you might open the file in the default editor
-                              toast({
-                                title: 'Opening File',
-                                description: `Opening ${selectedFile.filename} in external editor...`,
-                                status: 'info',
-                                duration: 2000,
-                              });
-                            }}
+                            onClick={() => openInExternalEditor(selectedFile)}
                           />
                         </Tooltip>
                       </HStack>
@@ -380,7 +568,7 @@ export const LogViewer: React.FC<LogViewerProps> = ({ programName, isOpen, onClo
                       <Flex justify="center" align="center" h="200px">
                         <Spinner />
                       </Flex>
-                    ) : (
+                    ) : logContent ? (
                       <Box
                         bg="gray.900"
                         color="gray.100"
@@ -391,17 +579,44 @@ export const LogViewer: React.FC<LogViewerProps> = ({ programName, isOpen, onClo
                         overflowX="auto"
                         maxH="400px"
                         overflowY="auto"
+                        border="1px solid"
+                        borderColor="gray.600"
                       >
-                        <Code
-                          display="block"
-                          whiteSpace="pre-wrap"
-                          bg="transparent"
-                          color="inherit"
-                          p={0}
-                        >
-                          {logContent || 'No content to display'}
-                        </Code>
+                        <VStack spacing={0} align="stretch">
+                          {logContent.split('\n').map((line, index) => {
+                            const isError = isErrorLine(line);
+                            const displayLine = showLineNumbers 
+                              ? `${(index + 1).toString().padStart(4, ' ')}: ${line}`
+                              : line;
+                            
+                            return (
+                              <Text
+                                key={index}
+                                whiteSpace="pre-wrap"
+                                color={isError ? "#ff6b6b" : "gray.100"}
+                                lineHeight="1.4"
+                                bg={isError ? "red.900" : "transparent"}
+                                px={isError ? 2 : 0}
+                                py={isError ? 1 : 0}
+                                borderRadius={isError ? "sm" : "none"}
+                              >
+                                {displayLine}
+                              </Text>
+                            );
+                          })}
+                        </VStack>
                       </Box>
+                    ) : (
+                      <Alert status="info" borderRadius="md">
+                        <AlertIcon />
+                        <Box>
+                          <AlertTitle>No Content Available</AlertTitle>
+                          <AlertDescription>
+                            This log file appears to be empty or could not be read. The file may be corrupted, 
+                            in use by another process, or contain binary data that cannot be displayed as text.
+                          </AlertDescription>
+                        </Box>
+                      </Alert>
                     )}
 
                     <HStack justify="space-between" fontSize="xs" color="gray.600">
@@ -410,7 +625,7 @@ export const LogViewer: React.FC<LogViewerProps> = ({ programName, isOpen, onClo
                         Modified: {formatDate(selectedFile.modified)}
                       </Text>
                       <Text>
-                        Showing last 1000 lines
+                        {logContent.split('\n').length} lines
                       </Text>
                     </HStack>
                   </VStack>
