@@ -77,53 +77,59 @@ class IconService {
   // Extract icon from executable or icon file
   async extractIconFromPath(iconPath: string, preferredSize: number = 32): Promise<string | null> {
     try {
+      console.log(`🔍 Attempting to extract icon from: ${iconPath}`);
+      
       const response = await invoke('extract_icon_from_path', {
         request: {
-          iconPath,
-          preferredSize
+          icon_path: iconPath,
+          preferred_size: preferredSize
         }
       }) as { success: boolean; icon?: { data: string; format: string; size: number; source: string }; error?: string };
 
       if (response.success && response.icon) {
+        console.log(`✅ Successfully extracted icon from ${iconPath} (${response.icon.size}x${response.icon.size})`);
         return response.icon.data;
       } else {
-        console.warn(`Failed to extract icon from ${iconPath}:`, response.error);
+        console.warn(`❌ Failed to extract icon from ${iconPath}:`, response.error);
         return null;
       }
     } catch (error) {
-      console.error(`Error extracting icon from ${iconPath}:`, error);
+      console.error(`💥 Error extracting icon from ${iconPath}:`, error);
       return null;
     }
   }
 
-  // Get fallback icon for a program with .exe extraction as fallback
+  // Get icon for a program with .exe extraction as primary method
   async getFallbackIcon(programName: string, publisher?: string, programType?: string, iconPath?: string): Promise<string | null> {
     try {
-      // First, try to extract icon from executable/icon file if path is provided
+      // PRIMARY: Try to extract icon from executable/icon file if path is provided
       if (iconPath) {
         const extractedIcon = await this.extractIconFromPath(iconPath, 32);
         if (extractedIcon) {
-          console.log(`✅ Extracted icon from ${iconPath} for ${programName}`);
+          console.log(`✅ Extracted authentic icon from ${iconPath} for ${programName}`);
           return extractedIcon;
         }
       }
 
-      // Try to find a specific icon for this program from our database
+      // SECONDARY: Try to find a specific icon for this program from our database
       const iconInfo = findIconForProgram(programName, publisher);
       
       if (iconInfo) {
+        console.log(`📋 Using database icon for ${programName}`);
         return await this.downloadIconFromUrl(iconInfo.iconUrl);
       }
 
-      // Fall back to generic icon based on program type
+      // TERTIARY: Fall back to generic icon based on program type
       if (programType) {
         const genericIconUrl = getGenericIconForType(programType);
+        console.log(`🔧 Using generic icon for ${programName} (${programType})`);
         return await this.downloadIconFromUrl(genericIconUrl);
       }
 
+      console.log(`❌ No icon found for ${programName}`);
       return null;
     } catch (error) {
-      console.error(`❌ Failed to get fallback icon for ${programName}:`, error);
+      console.error(`❌ Failed to get icon for ${programName}:`, error);
       return null;
     }
   }

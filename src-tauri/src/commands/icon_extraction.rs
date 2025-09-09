@@ -32,10 +32,16 @@ pub fn extract_icon_from_path(
 ) -> Result<IconExtractionResponse, String> {
     let mut extractor = extractor.lock().map_err(|e| format!("Failed to lock extractor: {}", e))?;
     
+    println!("🔍 Icon extraction request for: {}", request.icon_path);
+    
     // Resolve the icon path to find the actual executable or icon file
     let resolved_path = match resolve_icon_path(&request.icon_path) {
-        Some(path) => path,
+        Some(path) => {
+            println!("✅ Resolved path: {}", path);
+            path
+        },
         None => {
+            println!("❌ Could not resolve icon path: {}", request.icon_path);
             return Ok(IconExtractionResponse {
                 success: false,
                 icon: None,
@@ -46,24 +52,34 @@ pub fn extract_icon_from_path(
 
     // Try to extract icon from the resolved path
     match extractor.extract_icon_from_exe(&resolved_path, request.preferred_size) {
-        Ok(icon) => Ok(IconExtractionResponse {
-            success: true,
-            icon: Some(icon),
-            error: None,
-        }),
+        Ok(icon) => {
+            println!("✅ Successfully extracted icon from exe: {}", resolved_path);
+            Ok(IconExtractionResponse {
+                success: true,
+                icon: Some(icon),
+                error: None,
+            })
+        },
         Err(e) => {
+            println!("⚠️ Exe extraction failed: {}, trying ICO extraction", e);
             // If exe extraction fails, try as .ico file
             match extractor.extract_icon_from_ico(&resolved_path, request.preferred_size) {
-                Ok(icon) => Ok(IconExtractionResponse {
-                    success: true,
-                    icon: Some(icon),
-                    error: None,
-                }),
-                Err(ico_error) => Ok(IconExtractionResponse {
-                    success: false,
-                    icon: None,
-                    error: Some(format!("Failed to extract icon: {} (ICO: {})", e, ico_error)),
-                }),
+                Ok(icon) => {
+                    println!("✅ Successfully extracted icon from ICO: {}", resolved_path);
+                    Ok(IconExtractionResponse {
+                        success: true,
+                        icon: Some(icon),
+                        error: None,
+                    })
+                },
+                Err(ico_error) => {
+                    println!("❌ Both exe and ICO extraction failed: {} / {}", e, ico_error);
+                    Ok(IconExtractionResponse {
+                        success: false,
+                        icon: None,
+                        error: Some(format!("Failed to extract icon: {} (ICO: {})", e, ico_error)),
+                    })
+                },
             }
         }
     }

@@ -171,7 +171,7 @@ export const ProgramIcon: React.FC<ProgramIconProps> = ({
   useEffect(() => {
     const loadIcon = async () => {
       try {
-        // First try to get icon from our enhanced icon service (includes .exe extraction)
+        // PRIMARY: Try to get icon from our enhanced icon service (prioritizes .exe extraction)
         const icon = await iconService.getFallbackIcon(
           programName, 
           publisher, 
@@ -182,13 +182,13 @@ export const ProgramIcon: React.FC<ProgramIconProps> = ({
         if (icon) {
           setIconData(icon);
         } else {
-          // Fallback to our simple mapping if icon service fails
+          // FINAL FALLBACK: Use our simple mapping if everything else fails
           const simpleIcon = getIconForProgram(programName, publisher);
           setIconData(simpleIcon || '');
         }
       } catch (error) {
         console.error(`Failed to load icon for ${programName}:`, error);
-        // Fallback to simple mapping
+        // FINAL FALLBACK: Use simple mapping
         const simpleIcon = getIconForProgram(programName, publisher);
         setIconData(simpleIcon || '');
       }
