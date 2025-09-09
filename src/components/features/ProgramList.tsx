@@ -427,6 +427,8 @@ export const ProgramList: React.FC = () => {
                     programName={program.name} 
                     size="24px"
                     publisher={program.publisher}
+                    iconPath={program.icon_path}
+                    programType={program.program_type}
                   />
                   <Heading size="sm">{program.name}</Heading>
                 </HStack>

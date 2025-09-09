@@ -64,6 +64,8 @@ export const ProgramDetails: React.FC<ProgramDetailsProps> = ({ program, isOpen,
               programName={program.name} 
               size="32px"
               publisher={program.publisher}
+              iconPath={program.icon_path}
+              programType={program.program_type}
             />
             <VStack align="stretch" spacing={2}>
               <Text>{program.name}</Text>

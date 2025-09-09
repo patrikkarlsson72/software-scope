@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Image, Icon } from '@chakra-ui/react';
 import { FaWindowMaximize } from 'react-icons/fa';
+import { iconService } from '../../services/iconService';
 
 interface ProgramIconProps {
   programName: string;
   size?: string | number;
   showFallback?: boolean;
   publisher?: string;
+  iconPath?: string;
+  programType?: string;
 }
 
 // Simple icon mapping - direct and reliable
@@ -159,19 +162,40 @@ export const ProgramIcon: React.FC<ProgramIconProps> = ({
   programName, 
   size = "24px",
   showFallback = true,
-  publisher
+  publisher,
+  iconPath,
+  programType
 }) => {
   const [iconData, setIconData] = useState<string>('');
 
   useEffect(() => {
-    // Get icon directly from our simple mapping
-    const icon = getIconForProgram(programName, publisher);
-    if (icon) {
-      setIconData(icon);
-    } else {
-      setIconData('');
-    }
-  }, [programName, publisher]);
+    const loadIcon = async () => {
+      try {
+        // First try to get icon from our enhanced icon service (includes .exe extraction)
+        const icon = await iconService.getFallbackIcon(
+          programName, 
+          publisher, 
+          programType, 
+          iconPath
+        );
+        
+        if (icon) {
+          setIconData(icon);
+        } else {
+          // Fallback to our simple mapping if icon service fails
+          const simpleIcon = getIconForProgram(programName, publisher);
+          setIconData(simpleIcon || '');
+        }
+      } catch (error) {
+        console.error(`Failed to load icon for ${programName}:`, error);
+        // Fallback to simple mapping
+        const simpleIcon = getIconForProgram(programName, publisher);
+        setIconData(simpleIcon || '');
+      }
+    };
+
+    loadIcon();
+  }, [programName, publisher, iconPath, programType]);
 
   if (!iconData) {
     if (!showFallback) return null;

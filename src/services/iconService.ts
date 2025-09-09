@@ -74,10 +74,41 @@ class IconService {
     }
   }
 
-  // Get fallback icon for a program
-  async getFallbackIcon(programName: string, publisher?: string, programType?: string): Promise<string | null> {
+  // Extract icon from executable or icon file
+  async extractIconFromPath(iconPath: string, preferredSize: number = 32): Promise<string | null> {
     try {
-      // Try to find a specific icon for this program
+      const response = await invoke('extract_icon_from_path', {
+        request: {
+          iconPath,
+          preferredSize
+        }
+      }) as { success: boolean; icon?: { data: string; format: string; size: number; source: string }; error?: string };
+
+      if (response.success && response.icon) {
+        return response.icon.data;
+      } else {
+        console.warn(`Failed to extract icon from ${iconPath}:`, response.error);
+        return null;
+      }
+    } catch (error) {
+      console.error(`Error extracting icon from ${iconPath}:`, error);
+      return null;
+    }
+  }
+
+  // Get fallback icon for a program with .exe extraction as fallback
+  async getFallbackIcon(programName: string, publisher?: string, programType?: string, iconPath?: string): Promise<string | null> {
+    try {
+      // First, try to extract icon from executable/icon file if path is provided
+      if (iconPath) {
+        const extractedIcon = await this.extractIconFromPath(iconPath, 32);
+        if (extractedIcon) {
+          console.log(`✅ Extracted icon from ${iconPath} for ${programName}`);
+          return extractedIcon;
+        }
+      }
+
+      // Try to find a specific icon for this program from our database
       const iconInfo = findIconForProgram(programName, publisher);
       
       if (iconInfo) {
@@ -145,6 +176,38 @@ class IconService {
       cdnEntries: Object.values(this.fallbackCache).filter(e => e.source === 'cdn').length,
       genericEntries: Object.values(this.fallbackCache).filter(e => e.source === 'generic').length
     };
+  }
+
+  // Get icon extraction cache statistics
+  async getIconExtractionCacheStats() {
+    try {
+      const stats = await invoke('get_icon_cache_stats') as { cache_size: number; last_updated: string };
+      return stats;
+    } catch (error) {
+      console.error('Failed to get icon extraction cache stats:', error);
+      return { cache_size: 0, last_updated: 'Unknown' };
+    }
+  }
+
+  // Clear icon extraction cache
+  async clearIconExtractionCache() {
+    try {
+      await invoke('clear_icon_cache');
+      console.log('✅ Icon extraction cache cleared');
+    } catch (error) {
+      console.error('Failed to clear icon extraction cache:', error);
+    }
+  }
+
+  // Resolve icon path to find actual executable/icon file
+  async resolveIconPath(iconPath: string): Promise<string | null> {
+    try {
+      const resolvedPath = await invoke('resolve_icon_path_command', { iconPath }) as string | null;
+      return resolvedPath;
+    } catch (error) {
+      console.error(`Failed to resolve icon path ${iconPath}:`, error);
+      return null;
+    }
   }
 }
 

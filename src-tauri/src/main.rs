@@ -2,13 +2,17 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 mod commands;
+mod services;
 use commands::registry::*;
 use commands::export::*;
 use commands::cli::*;
 use commands::logs::*;
+use commands::icon_extraction::*;
+use services::icon_extractor::IconExtractor;
 
 fn main() {
     tauri::Builder::default()
+        .manage(IconExtractorState::new(IconExtractor::new()))
         .invoke_handler(tauri::generate_handler![
             get_installed_programs,
             export_programs,
@@ -24,7 +28,13 @@ fn main() {
             read_log_file,
             get_log_file_info,
             copy_file_to_temp,
-            open_file_with_editor
+            open_file_with_editor,
+            extract_icon_from_path,
+            extract_icon_from_exe,
+            extract_icon_from_ico,
+            get_icon_cache_stats,
+            clear_icon_cache,
+            resolve_icon_path_command
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
