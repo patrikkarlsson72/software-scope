@@ -65,6 +65,17 @@ export const ProgramList: React.FC = () => {
   const debouncedSearchTerm = useDebounce(searchTerm);
   const toast = useToast();
 
+  // Format file size in human readable format
+  const formatFileSize = (sizeInKB: number): string => {
+    if (sizeInKB < 1024) {
+      return `${sizeInKB} KB`;
+    } else if (sizeInKB < 1024 * 1024) {
+      return `${(sizeInKB / 1024).toFixed(1)} MB`;
+    } else {
+      return `${(sizeInKB / (1024 * 1024)).toFixed(1)} GB`;
+    }
+  };
+
   const publishers = useMemo(() => {
     const uniquePublishers = new Set(
       programs.map((p) => p.publisher).filter((p): p is string => p !== undefined && p !== '')
@@ -473,9 +484,21 @@ export const ProgramList: React.FC = () => {
                   />
                   <Heading size="sm">{program.name}</Heading>
                 </HStack>
-                {program.publisher && <Text fontSize="sm">Publisher: {program.publisher}</Text>}
-                {program.version && <Text fontSize="sm">Version: {program.version}</Text>}
-                {program.install_date && settings.showInstallDate && <Text fontSize="sm">Installed: {program.install_date}</Text>}
+                {program.publisher && <Text fontSize="sm" color="gray.600">Publisher: {program.publisher}</Text>}
+                {program.version && <Text fontSize="sm" color="gray.600">Version: {program.version}</Text>}
+                {program.install_date && settings.showInstallDate && (
+                  <Text fontSize="sm" color="gray.600">
+                    Installed: {new Date(program.install_date.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3')).toLocaleDateString()}
+                  </Text>
+                )}
+                {program.estimated_size && (
+                  <Text fontSize="sm" color="gray.600">Size: {formatFileSize(program.estimated_size)}</Text>
+                )}
+                {program.install_location && (
+                  <Text fontSize="xs" color="gray.500" noOfLines={1} title={program.install_location}>
+                    📁 {program.install_location}
+                  </Text>
+                )}
                 <HStack spacing={2} wrap="wrap">
                   {settings.showArchitecture && <Badge size="sm" colorScheme="blue">{program.architecture}</Badge>}
                   <Badge 
