@@ -1,13 +1,13 @@
 # VF Company Filter Feature Documentation
 
 ## Overview
-The VF Company Filter is a specialized feature that allows IT administrators to identify and filter applications that have been deployed by VF (the company). This feature integrates with the Windows Registry to detect VF-deployed applications and provides filtering capabilities in the user interface.
+The VF Company Filter is a specialized feature that allows IT administrators to identify and filter applications that have been managed by VF (the company). This feature uses the Windows "Programs and Features" interface to detect VF-managed applications by looking for APPID patterns in the Comments field, providing filtering capabilities in the user interface.
 
 ## Technical Implementation
 
 ### Backend (Rust)
 - **APPID Detection**: Scans Comments field in uninstall registry keys for "APPID:" pattern
-- **Detection Logic**: Identifies VF-deployed applications by presence of APPID in Comments field
+- **Detection Logic**: Identifies VF-managed applications by presence of APPID in Comments field
 - **Data Structure**: Added `is_vf_deployed: bool` field to `ProgramInfo` struct
 - **Integration**: VF detection runs after all other program scanning to mark existing programs
 
@@ -15,8 +15,10 @@ The VF Company Filter is a specialized feature that allows IT administrators to 
 - **Filter UI**: Dropdown with three options:
   - "All Applications" (default)
   - "VF Managed" (shows only VF-managed applications)
-  - "Non-VF" (shows only non-VF applications)
-- **Visual Indicators**: Purple "VF Managed" badges on program cards
+  - "Other Apps" (shows only non-VF applications)
+- **Visual Indicators**: Purple "VF Managed" badges on program cards with enhanced styling
+- **System Info**: Check OS button to open Windows version dialog
+- **Quick Stats**: VF Managed counter displayed prominently in top-left
 - **Type Safety**: Added `VFDeployment` type definition
 
 ## Detection Method
@@ -24,9 +26,21 @@ The feature uses the "Programs and Features" approach by scanning the Comments f
 
 1. Scans all programs discovered from the standard uninstall registry keys
 2. Checks the Comments field for the presence of "APPID:" text
-3. Marks programs with APPID comments as VF-deployed (`is_vf_deployed = true`)
+3. Marks programs with APPID comments as VF-managed (`is_vf_deployed = true`)
 
 This approach is more reliable and comprehensive than the previous registry-based method, as it uses the same data source that Windows "Programs and Features" uses.
+
+## User Interface Enhancements
+
+### System Information
+- **Check OS Button**: Replaces Windows version text with an interactive button
+- **Windows Version Dialog**: Clicking the button opens the official Windows version dialog
+- **Clean Design**: Blue outline button with computer icon and smooth hover animations
+
+### VF Managed Counter
+- **Prominent Display**: Purple card with border and shadow in top-left area
+- **Real-time Updates**: Counter updates dynamically as filters are applied
+- **Visual Hierarchy**: Positioned below Check OS button for logical flow
 
 ## User Interface
 
@@ -34,11 +48,13 @@ This approach is more reliable and comprehensive than the previous registry-base
 Located in the main program list interface, the VF filter dropdown provides:
 - **All Applications**: Shows all programs (default behavior)
 - **VF Managed**: Shows only applications managed by VF
-- **Non-VF**: Shows only applications not deployed by VF
+- **Other Apps**: Shows only applications not managed by VF
 
 ### Visual Indicators
 - **Purple Badge**: "VF Managed" badge appears on program cards for VF-managed applications
-- **Program Details**: VF deployment status is displayed in the program details modal
+- **Enhanced Styling**: Bold, solid purple badges with improved visibility
+- **Card Highlighting**: VF-managed programs have purple left border and light background
+- **Program Details**: VF management status is displayed in the program details modal
 
 ## Usage Scenarios
 

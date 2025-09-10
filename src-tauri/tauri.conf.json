@@ -8,7 +8,7 @@
   },
   "package": {
     "productName": "software-scope",
-    "version": "0.1.7"
+    "version": "1.0.0"
   },
   "tauri": {
     "allowlist": {
@@ -23,7 +23,7 @@
       },
       "shell": {
         "all": false,
-        "execute": false,
+        "execute": true,
         "sidecar": false,
         "open": false
       }
