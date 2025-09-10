@@ -16,7 +16,8 @@
 - React hooks and Context API for global state.  
 - React Query for async data fetching, caching, and invalidation.  
 - **Icon System**: Multi-layered icon handling with local SVG assets, intelligent matching, and fallback mechanisms.
-- **Caching System**: Dual-layer caching (24-hour local cache, 7-day fallback cache) for performance optimization.  
+- **Caching System**: Dual-layer caching (24-hour local cache, 7-day fallback cache) for performance optimization.
+- **Installation Information**: Enhanced program details with comprehensive installation data, file size formatting, and action buttons.  
 
 ## Data Flow
 1. **Backend** scans Windows Registry and filesystem.  

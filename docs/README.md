@@ -40,9 +40,10 @@ Welcome to the Software Scope documentation. This directory contains comprehensi
 - **Phase 4**: Alternative installation support (portable apps, user installations)
 - **Phase 5**: VF company filter and deployment status detection
 - **Phase 6**: VF Log Viewer integration ⭐ **NEW**
+- **Phase 7**: Comprehensive Installation Information ⭐ **NEW**
 
 ### 🚧 In Progress
-- **Phase 7**: Advanced features (remote scanning, CLI implementation)
+- **Phase 8**: Advanced features (remote scanning, CLI implementation)
 
 ### 🔮 Planned Features
 - Remote computer scanning
@@ -57,6 +58,8 @@ Welcome to the Software Scope documentation. This directory contains comprehensi
 - **Comprehensive Software Inventory**: Scan and list all installed programs
 - **Advanced Filtering**: Filter by publisher, date, type, and VF deployment status
 - **Detailed Program Information**: Registry data, installation details, uninstall commands
+- **Comprehensive Installation Information** ⭐ **NEW**: Install location, size, installer details, folder metadata
+- **UninstallView-Style Interface** ⭐ **NEW**: Action buttons, command display, comprehensive installation details
 - **Export Capabilities**: Multiple format support (CSV, HTML, XML, Text)
 
 ### VF-Specific Features
@@ -166,5 +169,5 @@ See the main [README](../README.md) for license information.
 ---
 
 **Last Updated**: December 19, 2024  
-**Version**: Phase 6 Complete (VF Log Viewer Integration)  
+**Version**: Phase 7 Complete (Comprehensive Installation Information)  
 **Status**: Active Development

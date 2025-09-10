@@ -19,11 +19,20 @@ A modern Windows software management tool built with Tauri, React, and Rust. Pro
   - Customizable sorting
 
 - 📊 Detailed Program Information
-  - Basic program details
-  - Installation information
+  - Basic program details (name, publisher, version, install date)
+  - **Comprehensive Installation Information** ⭐ **NEW**
+    - Install location and source paths
+    - File size in human-readable format (KB/MB/GB)
+    - Installer details and MSI information
+    - Folder creation/modification dates and ownership
+    - Release type and language information
   - Registry paths and data
   - System integration details
   - **VF deployment status** with visual indicators
+  - **Uninstall Actions** ⭐ **NEW**
+    - Uninstall, Modify, and Quiet Uninstall commands
+    - Action buttons with confirmation dialogs
+    - Copy functionality for all commands
 
 ### Performance & UI Features
 - ⚡ **Performance Optimized**
@@ -139,6 +148,14 @@ The project is in active development. Recent major updates include:
 - **Log File Management**: Smart scanning and filtering of VF deployment logs
 - **Enhanced Program Details**: Direct log access from program information
 - **Performance Optimized**: Efficient handling of large log files
+
+### Phase 7 Completed ✅ ⭐ **NEW**
+- **Comprehensive Installation Information**: Enhanced program details similar to UninstallView
+- **Installation Information Section**: Shows install location, size, installer details, and source paths
+- **Folder Information**: Displays folder creation/modification dates and ownership details
+- **Enhanced Uninstall Actions**: Uninstall, Modify, and Quiet Uninstall buttons with confirmation dialogs
+- **Human-Readable File Sizes**: Automatic conversion from KB to MB/GB with proper formatting
+- **Improved Program Cards**: Enhanced list view with size display and install location preview
 
 ### Upcoming Features 🔮
 - Remote computer scanning

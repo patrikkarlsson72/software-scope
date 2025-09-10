@@ -17,6 +17,8 @@
   - Publisher  
   - Version  
   - Install date  
+  - **File size** (human-readable format) ⭐ **NEW**
+  - **Install location** (with folder icon) ⭐ **NEW**
   - Architecture (32/64-bit)
   - VF deployment badge (purple) when applicable
 
@@ -26,7 +28,26 @@
 - **Sorting Controls**: Buttons for common sort keys.  
 - **Program Cards**: Primary unit of display, each representing a program with VF deployment indicators.  
 - **Export Button**: Dropdown with export format choices.  
-- **Settings Panel**: Accessible from header.  
+- **Settings Panel**: Accessible from header.
+
+## Program Details Modal ⭐ **ENHANCED**
+- **Basic Information**: Program name, publisher, version, install date, installation source
+- **Installation Information** ⭐ **NEW**:
+  - Install location and source paths
+  - File size in human-readable format (KB/MB/GB)
+  - Installer details and MSI information
+  - Release type and language information
+- **Folder Information** ⭐ **NEW**:
+  - Folder creation and modification dates
+  - Folder ownership information
+- **Uninstall Information** ⭐ **ENHANCED**:
+  - Uninstall, Modify, and Quiet Uninstall commands
+  - Action buttons with confirmation dialogs
+  - Copy functionality for all commands
+- **Additional Information**: Comments, URLs, registry details
+- **Advanced Details**: Expandable section with technical information
+- **VF Log Viewer**: For VF-deployed applications
+- **Action Buttons** ⭐ **NEW**: Uninstall and Modify buttons with confirmation dialogs  
 
 ## Interaction Patterns
 - **Search**: Typing in the search bar instantly filters results.  
