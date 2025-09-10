@@ -85,7 +85,7 @@ export const ProgramDetails: React.FC<ProgramDetailsProps> = ({ program, isOpen,
                   <Badge colorScheme="purple">Windows Installer</Badge>
                 )}
                 {program.is_vf_deployed && (
-                  <Badge colorScheme="orange">VF Deployed</Badge>
+                  <Badge colorScheme="purple" variant="solid" fontWeight="bold">VF Managed</Badge>
                 )}
               </HStack>
             </VStack>

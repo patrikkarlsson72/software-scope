@@ -14,6 +14,7 @@ fn main() {
     tauri::Builder::default()
         .manage(IconExtractorState::new(IconExtractor::new()))
         .invoke_handler(tauri::generate_handler![
+            get_system_info,
             get_installed_programs,
             export_programs,
             get_scan_progress,

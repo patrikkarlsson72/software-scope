@@ -15,7 +15,7 @@ A modern Windows software management tool built with Tauri, React, and Rust. Pro
   - Publisher filtering
   - Installation date filtering
   - Program type filtering (Application/Update/System Component)
-  - **VF Company Filter** - Filter applications by deployment status (All/VF Deployed/Non-VF)
+  - **VF Company Filter** - Filter applications by management status (All/VF Managed/Other Apps)
   - Customizable sorting
 
 - 📊 Detailed Program Information

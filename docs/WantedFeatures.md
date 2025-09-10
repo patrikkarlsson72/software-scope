@@ -24,7 +24,7 @@
 ## 5. Filter and Search Capabilities
 - Offers advanced filtering options to narrow down the displayed programs based on criteria like publisher, name, or installation date.
 - Includes a search function for quickly finding specific applications.
-- **VF Company Filter**: Filter applications by deployment status (All, VF Deployed, Non-VF).
+- **VF Company Filter**: Filter applications by management status (All, VF Managed, Other Apps).
 - Visual indicators with color-coded badges for easy identification of VF-deployed applications.
 
 ## 6. Export and Report Generation

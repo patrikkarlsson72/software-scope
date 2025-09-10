@@ -31,7 +31,7 @@
 ## Interaction Patterns
 - **Search**: Typing in the search bar instantly filters results.  
 - **Filter/Sort**: Selecting filter or sort options refreshes the program grid.  
-- **VF Filter**: Dropdown with options (All Applications, VF Deployed, Non-VF) for company-specific filtering.  
+- **VF Filter**: Dropdown with options (All Applications, VF Managed, Other Apps) for company-specific filtering.  
 - **Program Card Click**: Opens modal with detailed program information (collapsible sections).  
 - **Export**: Clicking export menu prompts file download.  
 - **Settings**: Opens configuration panel (e.g., cache, log folders).  

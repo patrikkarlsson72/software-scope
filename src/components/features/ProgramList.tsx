@@ -9,6 +9,7 @@ import {
   Stack,
   Text,
   HStack,
+  VStack,
   InputGroup,
   InputRightElement,
   Spinner,
@@ -25,6 +26,7 @@ import {
   Badge,
 } from '@chakra-ui/react';
 import { ProgramInfo } from '../../types/ProgramInfo';
+import { SystemInfo } from '../../types/SystemInfo';
 import { useDebounce } from '../../hooks/useDebounce';
 import { ProgramDetails } from './ProgramDetails';
 import { ChevronDownIcon } from '@chakra-ui/icons';
@@ -37,11 +39,12 @@ type DateFilter = 'all' | 'last7days' | 'last30days' | 'last90days' | 'custom';
 type ProgramType = 'all' | 'Application' | 'SystemComponent' | 'Update' | 'Portable Application';
 type Architecture = 'all' | '32-bit' | '64-bit' | 'User' | 'Unknown';
 type InstallationSource = 'all' | 'System' | 'User' | 'Filesystem';
-type VFDeployment = 'all' | 'vf-deployed' | 'non-vf';
+type VFDeployment = 'all' | 'vf-managed' | 'other-apps';
 
 export const ProgramList: React.FC = () => {
   const { settings } = useSettings();
   const [programs, setPrograms] = useState<ProgramInfo[]>([]);
+  const [systemInfo, setSystemInfo] = useState<SystemInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [sortField, setSortField] = useState<SortField>('name');
@@ -58,7 +61,7 @@ export const ProgramList: React.FC = () => {
   const [isSearching, setIsSearching] = useState(false);
   const [architecture, setArchitecture] = useState<Architecture>('all');
   const [installationSource, setInstallationSource] = useState<InstallationSource>('all');
-  const [vfDeployment, setVfDeployment] = useState<VFDeployment>('all');
+  const [vfDeployment, setVfDeployment] = useState<VFDeployment>('vf-managed');
   const [selectedProgram, setSelectedProgram] = useState<ProgramInfo | null>(null);
 
   const debouncedSearchTerm = useDebounce(searchTerm);
@@ -144,8 +147,8 @@ export const ProgramList: React.FC = () => {
         const matchesArchitecture = architecture === 'all' || program.architecture === architecture;
         const matchesInstallationSource = installationSource === 'all' || program.installation_source === installationSource;
         const matchesVFDeployment = vfDeployment === 'all' || 
-          (vfDeployment === 'vf-deployed' && program.is_vf_deployed) ||
-          (vfDeployment === 'non-vf' && !program.is_vf_deployed);
+          (vfDeployment === 'vf-managed' && program.is_vf_deployed) ||
+          (vfDeployment === 'other-apps' && !program.is_vf_deployed);
 
         return matchesSearch && matchesPublisher && matchesDate && matchesType && matchesArchitecture && matchesInstallationSource && matchesVFDeployment;
       })
@@ -172,10 +175,14 @@ export const ProgramList: React.FC = () => {
 
   // Fetch programs
   useEffect(() => {
-    const fetchPrograms = async () => {
+    const fetchData = async () => {
       try {
-        const installedPrograms = await invoke<ProgramInfo[]>('get_installed_programs');
+        const [installedPrograms, systemInfoData] = await Promise.all([
+          invoke<ProgramInfo[]>('get_installed_programs'),
+          invoke<SystemInfo>('get_system_info')
+        ]);
         setPrograms(installedPrograms);
+        setSystemInfo(systemInfoData);
         console.log(`Loaded ${installedPrograms.length} programs`);
       } catch (err) {
         setError(err as string);
@@ -184,7 +191,7 @@ export const ProgramList: React.FC = () => {
       }
     };
 
-    fetchPrograms();
+    fetchData();
   }, []);
 
   const handleSort = (field: SortField) => {
@@ -258,7 +265,29 @@ export const ProgramList: React.FC = () => {
   return (
     <Box p={5}>
       <HStack justify="space-between" mb={6}>
-        <Heading size="lg">Installed Programs</Heading>
+        <VStack align="flex-start" spacing={3}>
+          <Heading size="lg">Installed Programs</Heading>
+          {systemInfo && (
+            <VStack align="flex-start" spacing={2}>
+              <Text fontSize="sm" color="gray.600" fontWeight="medium">
+                {systemInfo.windows_version}
+              </Text>
+              <Box
+                bg="purple.50"
+                border="1px solid"
+                borderColor="purple.200"
+                borderRadius="md"
+                px={3}
+                py={2}
+                boxShadow="sm"
+              >
+                <Text fontSize="sm" color="purple.700" fontWeight="bold">
+                  VF Managed: {programs.filter(p => p.is_vf_deployed).length}
+                </Text>
+              </Box>
+            </VStack>
+          )}
+        </VStack>
         <HStack spacing={2}>
           <Button 
             onClick={() => handleExport()} 
@@ -350,8 +379,8 @@ export const ProgramList: React.FC = () => {
             width="150px"
           >
             <option value="all">All Applications</option>
-            <option value="vf-deployed">VF Deployed</option>
-            <option value="non-vf">Non-VF</option>
+            <option value="vf-managed">VF Managed</option>
+            <option value="other-apps">Other Apps</option>
           </Select>
 
           <Text ml="auto" color="gray.600" fontSize="sm">
@@ -420,6 +449,9 @@ export const ProgramList: React.FC = () => {
               cursor="pointer"
               _hover={{ shadow: 'md' }}
               onClick={() => setSelectedProgram(program)}
+              borderLeft={program.is_vf_deployed ? '4px solid' : undefined}
+              borderLeftColor={program.is_vf_deployed ? 'purple.400' : undefined}
+              bg={program.is_vf_deployed ? 'purple.50' : undefined}
             >
               <CardBody>
                 <HStack spacing={3} align="flex-start" mb={2}>
@@ -448,8 +480,8 @@ export const ProgramList: React.FC = () => {
                     {program.installation_source}
                   </Badge>
                   {program.is_vf_deployed && (
-                    <Badge size="sm" colorScheme="purple">
-                      VF Deployed
+                    <Badge size="sm" colorScheme="purple" variant="solid" fontWeight="bold">
+                      VF Managed
                     </Badge>
                   )}
                 </HStack>

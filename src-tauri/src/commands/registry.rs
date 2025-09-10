@@ -7,6 +7,12 @@ use base64::Engine;
 use reqwest;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct SystemInfo {
+    pub windows_version: String,
+    pub vf_managed_count: u32,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ProgramInfo {
     // Basic Info
     pub name: String,                    // DisplayName
@@ -43,6 +49,35 @@ pub struct ProgramInfo {
     pub architecture: String,
     pub installation_source: String,     // NEW: "System", "User", "Filesystem"
     pub is_vf_deployed: bool,            // NEW: Indicates if deployed by VF company
+}
+
+#[tauri::command]
+pub fn get_system_info() -> Result<SystemInfo, String> {
+    let windows_version = get_windows_version()?;
+    let vf_managed_count = 0; // This will be calculated by the frontend
+    
+    Ok(SystemInfo {
+        windows_version,
+        vf_managed_count,
+    })
+}
+
+fn get_windows_version() -> Result<String, String> {
+    let hklm = RegKey::predef(HKEY_LOCAL_MACHINE);
+    
+    // Try to get Windows version from registry
+    if let Ok(version_key) = hklm.open_subkey("SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion") {
+        let product_name = version_key.get_value::<String, _>("ProductName")
+            .unwrap_or_else(|_| "Windows".to_string());
+        
+        let display_version = version_key.get_value::<String, _>("DisplayVersion")
+            .unwrap_or_else(|_| version_key.get_value::<String, _>("ReleaseId")
+                .unwrap_or_else(|_| "Unknown".to_string()));
+        
+        Ok(format!("{} {}", product_name, display_version))
+    } else {
+        Ok("Windows Unknown".to_string())
+    }
 }
 
 #[tauri::command]

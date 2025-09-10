@@ -49,7 +49,7 @@ fn export_to_csv(programs: &[ProgramInfo], file_path: &str) -> Result<(), Box<dy
         "Is Windows Installer",
         "Architecture",
         "Installation Source",
-        "Is VF Deployed",
+        "Is VF Managed",
     ])?;
 
     // Write data
@@ -147,7 +147,7 @@ fn export_to_txt(programs: &[ProgramInfo], file_path: &str) -> Result<(), Box<dy
         writeln!(file, "Program Type: {}", program.program_type)?;
         writeln!(file, "Is Windows Installer: {}", program.is_windows_installer)?;
         writeln!(file, "Installation Source: {}", program.installation_source)?;
-        writeln!(file, "Is VF Deployed: {}", program.is_vf_deployed)?;
+        writeln!(file, "Is VF Managed: {}", program.is_vf_deployed)?;
         writeln!(file, "Registry Path: {}", program.registry_path)?;
         writeln!(file, "\n{}", "=".repeat(50))?;
         writeln!(file)?;
@@ -241,7 +241,7 @@ fn export_to_html(programs: &[ProgramInfo], file_path: &str) -> Result<(), Box<d
                 <th>Architecture</th>
                 <th>Type</th>
                 <th>Installation Source</th>
-                <th>VF Deployed</th>
+                <th>VF Managed</th>
                 <th>Size</th>
             </tr>"#,
         chrono::Utc::now().format("%Y-%m-%d %H:%M:%S UTC"),

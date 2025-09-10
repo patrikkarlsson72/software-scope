@@ -14,9 +14,9 @@ The VF Company Filter is a specialized feature that allows IT administrators to 
 ### Frontend (React/TypeScript)
 - **Filter UI**: Dropdown with three options:
   - "All Applications" (default)
-  - "VF Deployed" (shows only VF-deployed applications)
+  - "VF Managed" (shows only VF-managed applications)
   - "Non-VF" (shows only non-VF applications)
-- **Visual Indicators**: Purple "VF Deployed" badges on program cards
+- **Visual Indicators**: Purple "VF Managed" badges on program cards
 - **Type Safety**: Added `VFDeployment` type definition
 
 ## Detection Method
@@ -33,11 +33,11 @@ This approach is more reliable and comprehensive than the previous registry-base
 ### Filter Dropdown
 Located in the main program list interface, the VF filter dropdown provides:
 - **All Applications**: Shows all programs (default behavior)
-- **VF Deployed**: Shows only applications deployed by VF
+- **VF Managed**: Shows only applications managed by VF
 - **Non-VF**: Shows only applications not deployed by VF
 
 ### Visual Indicators
-- **Purple Badge**: "VF Deployed" badge appears on program cards for VF-deployed applications
+- **Purple Badge**: "VF Managed" badge appears on program cards for VF-managed applications
 - **Program Details**: VF deployment status is displayed in the program details modal
 
 ## Usage Scenarios
