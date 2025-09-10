@@ -242,82 +242,11 @@ fn expand_environment_path(path: &str) -> String {
 }
 
 fn scan_vf_deployed_applications(programs: &mut Vec<ProgramInfo>) {
-    let hklm = RegKey::predef(HKEY_LOCAL_MACHINE);
-    
-    // Scan HKLM/SOFTWARE/Atea/Applications for VF-deployed applications
-    if let Ok(atea_key) = hklm.open_subkey("SOFTWARE\\Atea\\Applications") {
-        for key_result in atea_key.enum_keys() {
-            if let Ok(key_name) = key_result {
-                if let Ok(app_key) = atea_key.open_subkey(&key_name) {
-                    // Try to get application details from VF registry
-                    let app_name = app_key.get_value::<String, _>("DisplayName")
-                        .or_else(|_| app_key.get_value::<String, _>("Name"))
-                        .or_else(|_| app_key.get_value::<String, _>("ApplicationName"))
-                        .unwrap_or_else(|_| format!("VF Application ({})", &key_name[..8]));
-                    
-                    let version = app_key.get_value::<String, _>("Version")
-                        .or_else(|_| app_key.get_value::<String, _>("DisplayVersion"))
-                        .unwrap_or_else(|_| "Unknown".to_string());
-                    
-                    let publisher = app_key.get_value::<String, _>("Publisher")
-                        .or_else(|_| app_key.get_value::<String, _>("Company"))
-                        .unwrap_or_else(|_| "VF Deployed".to_string());
-                    
-                    let install_location = app_key.get_value::<String, _>("InstallLocation")
-                        .or_else(|_| app_key.get_value::<String, _>("InstallPath"))
-                        .unwrap_or_else(|_| "Unknown".to_string());
-                    
-                    // Check if we already have this program in our list
-                    let mut found_existing = false;
-                    for program in programs.iter_mut() {
-                        if program.name == app_name {
-                            program.is_vf_deployed = true;
-                            found_existing = true;
-                            break;
-                        }
-                    }
-                    
-                    // If not found in existing programs, add it as a new VF-deployed program
-                    if !found_existing {
-                        let program = ProgramInfo {
-                            name: app_name.clone(),
-                            registry_name: key_name.clone(),
-                            version: Some(version),
-                            registry_time: None,
-                            install_date: None,
-                            installed_for: Some("All Users".to_string()),
-                            install_location: Some(install_location),
-                            install_source: None,
-                            install_folder_created: None,
-                            install_folder_modified: None,
-                            install_folder_owner: None,
-                            publisher: Some(publisher),
-                            uninstall_string: None,
-                            change_install_string: None,
-                            quiet_uninstall_string: None,
-                            comments: None,
-                            about_url: None,
-                            update_info_url: None,
-                            help_link: None,
-                            install_source_path: None,
-                            installer_name: None,
-                            release_type: None,
-                            icon_path: None,
-                            msi_filename: None,
-                            estimated_size: None,
-                            attributes: None,
-                            language: None,
-                            parent_key_name: None,
-                            registry_path: format!("HKLM\\SOFTWARE\\Atea\\Applications\\{}", key_name),
-                            program_type: "VF Deployed Application".to_string(),
-                            is_windows_installer: false,
-                            architecture: "Unknown".to_string(),
-                            installation_source: "VF Registry".to_string(),
-                            is_vf_deployed: true,
-                        };
-                        programs.push(program);
-                    }
-                }
+    // Scan all programs for APPID in Comments field to identify VF-deployed applications
+    for program in programs.iter_mut() {
+        if let Some(comments) = &program.comments {
+            if comments.contains("APPID:") {
+                program.is_vf_deployed = true;
             }
         }
     }

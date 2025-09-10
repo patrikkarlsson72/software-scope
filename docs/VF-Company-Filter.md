@@ -6,8 +6,8 @@ The VF Company Filter is a specialized feature that allows IT administrators to 
 ## Technical Implementation
 
 ### Backend (Rust)
-- **Registry Scanning**: Scans `HKLM/SOFTWARE/Atea/Applications` registry key
-- **Detection Logic**: Matches applications by DisplayName between the main uninstall registry and VF registry
+- **APPID Detection**: Scans Comments field in uninstall registry keys for "APPID:" pattern
+- **Detection Logic**: Identifies VF-deployed applications by presence of APPID in Comments field
 - **Data Structure**: Added `is_vf_deployed: bool` field to `ProgramInfo` struct
 - **Integration**: VF detection runs after all other program scanning to mark existing programs
 
@@ -19,16 +19,14 @@ The VF Company Filter is a specialized feature that allows IT administrators to 
 - **Visual Indicators**: Purple "VF Deployed" badges on program cards
 - **Type Safety**: Added `VFDeployment` type definition
 
-## Registry Structure
-The feature scans the following registry location:
-```
-HKLM/SOFTWARE/Atea/Applications
-```
+## Detection Method
+The feature uses the "Programs and Features" approach by scanning the Comments field in uninstall registry keys for the "APPID:" pattern. This method:
 
-For each application found in this registry, the system:
-1. Extracts the DisplayName value
-2. Searches through all discovered programs
-3. Marks matching programs as VF-deployed (`is_vf_deployed = true`)
+1. Scans all programs discovered from the standard uninstall registry keys
+2. Checks the Comments field for the presence of "APPID:" text
+3. Marks programs with APPID comments as VF-deployed (`is_vf_deployed = true`)
+
+This approach is more reliable and comprehensive than the previous registry-based method, as it uses the same data source that Windows "Programs and Features" uses.
 
 ## User Interface
 
