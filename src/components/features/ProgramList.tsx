@@ -26,7 +26,6 @@ import {
   Badge,
 } from '@chakra-ui/react';
 import { ProgramInfo } from '../../types/ProgramInfo';
-import { SystemInfo } from '../../types/SystemInfo';
 import { useDebounce } from '../../hooks/useDebounce';
 import { ProgramDetails } from './ProgramDetails';
 import { ChevronDownIcon } from '@chakra-ui/icons';
@@ -44,7 +43,6 @@ type VFDeployment = 'all' | 'vf-managed' | 'other-apps';
 export const ProgramList: React.FC = () => {
   const { settings } = useSettings();
   const [programs, setPrograms] = useState<ProgramInfo[]>([]);
-  const [systemInfo, setSystemInfo] = useState<SystemInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [sortField, setSortField] = useState<SortField>('name');
@@ -175,14 +173,10 @@ export const ProgramList: React.FC = () => {
 
   // Fetch programs
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchPrograms = async () => {
       try {
-        const [installedPrograms, systemInfoData] = await Promise.all([
-          invoke<ProgramInfo[]>('get_installed_programs'),
-          invoke<SystemInfo>('get_system_info')
-        ]);
+        const installedPrograms = await invoke<ProgramInfo[]>('get_installed_programs');
         setPrograms(installedPrograms);
-        setSystemInfo(systemInfoData);
         console.log(`Loaded ${installedPrograms.length} programs`);
       } catch (err) {
         setError(err as string);
@@ -191,7 +185,7 @@ export const ProgramList: React.FC = () => {
       }
     };
 
-    fetchData();
+    fetchPrograms();
   }, []);
 
   const handleSort = (field: SortField) => {
@@ -267,26 +261,41 @@ export const ProgramList: React.FC = () => {
       <HStack justify="space-between" mb={6}>
         <VStack align="flex-start" spacing={3}>
           <Heading size="lg">Installed Programs</Heading>
-          {systemInfo && (
-            <VStack align="flex-start" spacing={2}>
-              <Text fontSize="sm" color="gray.600" fontWeight="medium">
-                {systemInfo.windows_version}
+          <VStack align="flex-start" spacing={2}>
+            <Button
+              onClick={() => invoke('open_winver')}
+              size="sm"
+              colorScheme="blue"
+              variant="outline"
+              leftIcon={<Text fontSize="xs">🖥️</Text>}
+              _hover={{
+                bg: "blue.50",
+                borderColor: "blue.300",
+                transform: "translateY(-1px)",
+                boxShadow: "md"
+              }}
+              _active={{
+                transform: "translateY(0px)",
+                boxShadow: "sm"
+              }}
+              transition="all 0.2s"
+            >
+              Check OS
+            </Button>
+            <Box
+              bg="purple.50"
+              border="1px solid"
+              borderColor="purple.200"
+              borderRadius="md"
+              px={3}
+              py={2}
+              boxShadow="sm"
+            >
+              <Text fontSize="sm" color="purple.700" fontWeight="bold">
+                VF Managed: {programs.filter(p => p.is_vf_deployed).length}
               </Text>
-              <Box
-                bg="purple.50"
-                border="1px solid"
-                borderColor="purple.200"
-                borderRadius="md"
-                px={3}
-                py={2}
-                boxShadow="sm"
-              >
-                <Text fontSize="sm" color="purple.700" fontWeight="bold">
-                  VF Managed: {programs.filter(p => p.is_vf_deployed).length}
-                </Text>
-              </Box>
-            </VStack>
-          )}
+            </Box>
+          </VStack>
         </VStack>
         <HStack spacing={2}>
           <Button 

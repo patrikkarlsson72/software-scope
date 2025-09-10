@@ -62,10 +62,73 @@ pub fn get_system_info() -> Result<SystemInfo, String> {
     })
 }
 
-fn get_windows_version() -> Result<String, String> {
+#[tauri::command]
+pub fn open_winver() -> Result<(), String> {
+    // Open winver command to show Windows version dialog
+    std::process::Command::new("winver")
+        .spawn()
+        .map_err(|e| format!("Failed to open winver: {}", e))?;
+    
+    Ok(())
+}
+
+#[tauri::command]
+pub fn debug_windows_version() -> Result<String, String> {
     let hklm = RegKey::predef(HKEY_LOCAL_MACHINE);
     
-    // Try to get Windows version from registry
+    if let Ok(version_key) = hklm.open_subkey("SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion") {
+        let product_name = version_key.get_value::<String, _>("ProductName").unwrap_or_default();
+        let build_number = version_key.get_value::<u32, _>("CurrentBuild").unwrap_or(0);
+        let display_version = version_key.get_value::<String, _>("DisplayVersion").unwrap_or_default();
+        let release_id = version_key.get_value::<String, _>("ReleaseId").unwrap_or_default();
+        let ubr = version_key.get_value::<u32, _>("UBR").unwrap_or(0);
+        
+        Ok(format!(
+            "ProductName: {}\nBuild: {}\nDisplayVersion: {}\nReleaseId: {}\nUBR: {}",
+            product_name, build_number, display_version, release_id, ubr
+        ))
+    } else {
+        Ok("Failed to read registry".to_string())
+    }
+}
+
+fn get_windows_version() -> Result<String, String> {
+    // Use PowerShell to get Windows version - similar to winver but we can capture output
+    let output = std::process::Command::new("powershell")
+        .args(&["-Command", "Get-ComputerInfo | Select-Object WindowsProductName, WindowsVersion | Format-Table -HideTableHeaders"])
+        .output();
+    
+    if let Ok(output) = output {
+        let output_str = String::from_utf8_lossy(&output.stdout);
+        let lines: Vec<&str> = output_str.lines().collect();
+        
+        if lines.len() >= 2 {
+            let product_line = lines[0].trim();
+            let version_line = lines[1].trim();
+            
+            // Extract Windows version from product name
+            let windows_version = if product_line.contains("Windows 11") {
+                "Windows 11"
+            } else if product_line.contains("Windows 10") {
+                "Windows 10"
+            } else {
+                "Windows"
+            };
+            
+            // Extract version number (like 24H2)
+            let version_number = if !version_line.is_empty() {
+                version_line
+            } else {
+                "Unknown"
+            };
+            
+            return Ok(format!("{} {}", windows_version, version_number));
+        }
+    }
+    
+    // Fallback to registry if PowerShell fails
+    let hklm = RegKey::predef(HKEY_LOCAL_MACHINE);
+    
     if let Ok(version_key) = hklm.open_subkey("SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion") {
         let product_name = version_key.get_value::<String, _>("ProductName")
             .unwrap_or_else(|_| "Windows".to_string());
@@ -74,7 +137,16 @@ fn get_windows_version() -> Result<String, String> {
             .unwrap_or_else(|_| version_key.get_value::<String, _>("ReleaseId")
                 .unwrap_or_else(|_| "Unknown".to_string()));
         
-        Ok(format!("{} {}", product_name, display_version))
+        // Clean up the product name
+        let clean_product_name = if product_name.contains("Windows 11") {
+            "Windows 11"
+        } else if product_name.contains("Windows 10") {
+            "Windows 10"
+        } else {
+            "Windows"
+        };
+        
+        Ok(format!("{} {}", clean_product_name, display_version))
     } else {
         Ok("Windows Unknown".to_string())
     }
