@@ -27,6 +27,8 @@ export interface ProgramInfo {
   attributes?: string;
   language?: string;
   parent_key_name?: string;
+  shortcuts?: string[];
+  programdata_paths?: string[];
   registry_path: string;
   program_type: 'Application' | 'SystemComponent' | 'Update' | 'Portable Application' | 'Unknown';
   is_windows_installer: boolean;

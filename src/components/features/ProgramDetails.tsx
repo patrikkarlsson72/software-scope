@@ -323,6 +323,50 @@ export const ProgramDetails: React.FC<ProgramDetailsProps> = ({ program, isOpen,
                         </Button>
                       </HStack>
                     </GridItem>
+                    {program.shortcuts && program.shortcuts.length > 0 && (
+                      <>
+                        <GridItem><Text color="gray.600" fontWeight="medium">Shortcuts</Text></GridItem>
+                        <GridItem>
+                          <VStack align="stretch" spacing={1}>
+                            {program.shortcuts.map((shortcut, index) => (
+                              <HStack key={index}>
+                                <Text fontSize="sm" fontFamily="monospace" wordBreak="break-all">
+                                  {shortcut}
+                                </Text>
+                                <Button 
+                                  size="xs"
+                                  onClick={() => handleCopy(shortcut, 'Shortcut path')}
+                                >
+                                  Copy
+                                </Button>
+                              </HStack>
+                            ))}
+                          </VStack>
+                        </GridItem>
+                      </>
+                    )}
+                    {program.programdata_paths && program.programdata_paths.length > 0 && (
+                      <>
+                        <GridItem><Text color="gray.600" fontWeight="medium">ProgramData Paths</Text></GridItem>
+                        <GridItem>
+                          <VStack align="stretch" spacing={1}>
+                            {program.programdata_paths.map((path, index) => (
+                              <HStack key={index}>
+                                <Text fontSize="sm" fontFamily="monospace" wordBreak="break-all">
+                                  {path}
+                                </Text>
+                                <Button 
+                                  size="xs"
+                                  onClick={() => handleCopy(path, 'ProgramData path')}
+                                >
+                                  Copy
+                                </Button>
+                              </HStack>
+                            ))}
+                          </VStack>
+                        </GridItem>
+                      </>
+                    )}
                   </Grid>
                 </AccordionPanel>
               </AccordionItem>

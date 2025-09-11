@@ -43,6 +43,8 @@ pub struct ProgramInfo {
     pub attributes: Option<String>,      // NEW
     pub language: Option<String>,        // NEW
     pub parent_key_name: Option<String>, // NEW
+    pub shortcuts: Option<Vec<String>>,  // NEW: List of shortcut paths found
+    pub programdata_paths: Option<Vec<String>>, // NEW: List of ProgramData paths found
     pub registry_path: String,
     pub program_type: String,
     pub is_windows_installer: bool,
@@ -356,6 +358,29 @@ fn scan_vf_deployed_applications(programs: &mut Vec<ProgramInfo>) {
                 program.is_vf_deployed = true;
             }
         }
+        
+        // For ALL apps (not just VF Managed), try to detect actual installation location in Program Files
+        if program.install_location.is_none() {
+            if let Some(detected_location) = detect_program_files_location(&program.name, program.publisher.as_deref()) {
+                println!("DEBUG: Detected location for {}: {}", program.name, detected_location);
+                program.install_location = Some(detected_location);
+            } else {
+                println!("DEBUG: No location detected for {} (publisher: {:?})", program.name, program.publisher);
+            }
+        } else {
+            println!("DEBUG: {} already has install_location: {:?}", program.name, program.install_location);
+        }
+        
+        // For ALL apps, scan for shortcuts and ProgramData paths
+        let shortcuts = scan_shortcuts(&program.name, program.publisher.as_deref());
+        let programdata_paths = scan_programdata_paths(&program.name, program.publisher.as_deref());
+        
+        if !shortcuts.is_empty() {
+            program.shortcuts = Some(shortcuts);
+        }
+        if !programdata_paths.is_empty() {
+            program.programdata_paths = Some(programdata_paths);
+        }
     }
 }
 
@@ -438,6 +463,8 @@ fn scan_directory_for_programs(base_path: &str, programs: &mut Vec<ProgramInfo>,
                                 attributes: None,
                                 language: None,
                                 parent_key_name: None,
+                                shortcuts: None, // Will be populated later if needed
+                                programdata_paths: None, // Will be populated later if needed
                                 registry_path: format!("Filesystem: {}", full_path),
                                 program_type: "Portable Application".to_string(),
                                 is_windows_installer: false,
@@ -485,6 +512,26 @@ fn scan_registry_key(key: &RegKey, programs: &mut Vec<ProgramInfo>, architecture
                         _ => format!("HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{}", key_name),
                     };
 
+                    let install_location = program_key.get_value("InstallLocation").ok()
+                        .or_else(|| program_key.get_value("InstallSource").ok())
+                        .or_else(|| {
+                            // Try to extract path from uninstall string as last resort
+                            program_key.get_value::<String, _>("UninstallString").ok()
+                                .and_then(|uninstall_str| {
+                                    // Extract path from common uninstall string patterns
+                                    if uninstall_str.contains("\\") {
+                                        let path = uninstall_str.split('\\').take(3).collect::<Vec<&str>>().join("\\");
+                                        if Path::new(&path).exists() {
+                                            Some(path)
+                                        } else {
+                                            None
+                                        }
+                                    } else {
+                                        None
+                                    }
+                                })
+                        });
+                    
                     let program = ProgramInfo {
                         name,
                         registry_name: key_name.clone(),
@@ -492,7 +539,7 @@ fn scan_registry_key(key: &RegKey, programs: &mut Vec<ProgramInfo>, architecture
                         registry_time: program_key.get_value("InstallTime").ok(),
                         install_date: program_key.get_value("InstallDate").ok(),
                         installed_for,
-                        install_location: program_key.get_value("InstallLocation").ok(),
+                        install_location,
                         install_source: program_key.get_value("InstallSource").ok(),
                         install_folder_created: program_key.get_value("InstallFolderCreated").ok(),
                         install_folder_modified: program_key.get_value("InstallFolderModified").ok(),
@@ -514,6 +561,8 @@ fn scan_registry_key(key: &RegKey, programs: &mut Vec<ProgramInfo>, architecture
                         attributes: program_key.get_value("Attributes").ok(),
                         language: program_key.get_value("Language").ok(),
                         parent_key_name: program_key.get_value("ParentKeyName").ok(),
+                        shortcuts: None, // Will be populated later if needed
+                        programdata_paths: None, // Will be populated later if needed
                         registry_path,
                         program_type: determine_program_type(&program_key),
                         is_windows_installer: program_key.get_value::<u32, _>("WindowsInstaller").unwrap_or(0) == 1,
@@ -603,4 +652,149 @@ pub fn test_alternative_locations() -> Result<Vec<String>, String> {
     }
     
     Ok(found_programs)
+}
+
+/// Scan for shortcuts related to a program
+fn scan_shortcuts(program_name: &str, publisher: Option<&str>) -> Vec<String> {
+    let mut shortcuts = Vec::new();
+    
+    // Common shortcut locations
+    let shortcut_locations = vec![
+        // User shortcuts
+        format!("{}\\Microsoft\\Windows\\Start Menu\\Programs", 
+                std::env::var("APPDATA").unwrap_or_default()),
+        // All users shortcuts
+        format!("{}\\Microsoft\\Windows\\Start Menu\\Programs", 
+                std::env::var("ALLUSERSPROFILE").unwrap_or_default()),
+        // Desktop shortcuts
+        format!("{}\\Desktop", 
+                std::env::var("USERPROFILE").unwrap_or_default()),
+        // Public desktop shortcuts
+        format!("{}\\Desktop", 
+                std::env::var("PUBLIC").unwrap_or_default()),
+    ];
+    
+    for location in shortcut_locations {
+        if let Ok(entries) = std::fs::read_dir(&location) {
+            for entry in entries.flatten() {
+                if let Some(file_name) = entry.file_name().to_str() {
+                    let file_name_lower = file_name.to_lowercase();
+                    let program_name_lower = program_name.to_lowercase();
+                    
+                    // Check if shortcut name contains program name or publisher
+                    if file_name_lower.contains(&program_name_lower) ||
+                       (publisher.is_some() && file_name_lower.contains(&publisher.unwrap().to_lowercase())) {
+                        if file_name.ends_with(".lnk") {
+                            shortcuts.push(entry.path().to_string_lossy().to_string());
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    shortcuts
+}
+
+/// Scan for ProgramData folders related to a program
+fn scan_programdata_paths(program_name: &str, publisher: Option<&str>) -> Vec<String> {
+    let mut paths = Vec::new();
+    
+    let programdata = std::env::var("PROGRAMDATA").unwrap_or_else(|_| "C:\\ProgramData".to_string());
+    
+    if let Ok(entries) = std::fs::read_dir(&programdata) {
+        for entry in entries.flatten() {
+            if let Some(folder_name) = entry.file_name().to_str() {
+                let folder_name_lower = folder_name.to_lowercase();
+                let program_name_lower = program_name.to_lowercase();
+                
+                // Check if folder name contains program name or publisher
+                if folder_name_lower.contains(&program_name_lower) ||
+                   (publisher.is_some() && folder_name_lower.contains(&publisher.unwrap().to_lowercase())) {
+                    if entry.path().is_dir() {
+                        paths.push(entry.path().to_string_lossy().to_string());
+                    }
+                }
+            }
+        }
+    }
+    
+    paths
+}
+
+/// Detect actual installation location in Program Files for VF Managed apps
+fn detect_program_files_location(program_name: &str, publisher: Option<&str>) -> Option<String> {
+    let program_files_paths = vec![
+        r"C:\Program Files",
+        r"C:\Program Files (x86)",
+    ];
+    
+    for program_files in program_files_paths {
+        if let Ok(entries) = std::fs::read_dir(program_files) {
+            for entry in entries.flatten() {
+                if let Some(folder_name) = entry.file_name().to_str() {
+                    let folder_name_lower = folder_name.to_lowercase();
+                    let program_name_lower = program_name.to_lowercase();
+                    
+                    // Check if folder name matches program name or publisher
+                    // For 7-Zip, look for exact match or partial match
+                    let is_match = folder_name_lower.contains(&program_name_lower) ||
+                       (publisher.is_some() && folder_name_lower.contains(&publisher.unwrap().to_lowercase())) ||
+                       (program_name_lower.contains("7-zip") && folder_name_lower.contains("7-zip")) ||
+                       (program_name_lower.contains("7zip") && folder_name_lower.contains("7-zip"));
+                    
+                    if is_match {
+                        
+                        let full_path = entry.path().to_string_lossy().to_string();
+                        
+                        // Verify it's actually the program by looking for common executable patterns
+                        if is_likely_program_folder(&full_path, program_name) {
+                            return Some(full_path);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    None
+}
+
+/// Check if a folder is likely to contain the actual program
+fn is_likely_program_folder(folder_path: &str, program_name: &str) -> bool {
+    // Look for common executable patterns in the folder
+    let mut common_exe_patterns = vec![
+        format!("{}.exe", program_name),
+        format!("{}.exe", program_name.replace(" ", "")),
+        format!("{}.exe", program_name.replace(" ", "-")),
+        format!("{}.exe", program_name.replace(" ", "_")),
+        "uninstall.exe".to_string(),
+        "setup.exe".to_string(),
+        "install.exe".to_string(),
+    ];
+    
+    // Add specific patterns for 7-Zip
+    if program_name.to_lowercase().contains("7-zip") || program_name.to_lowercase().contains("7zip") {
+        common_exe_patterns.extend(vec![
+            "7z.exe".to_string(),
+            "7zFM.exe".to_string(),
+            "7zG.exe".to_string(),
+            "7z.sfx".to_string(),
+        ]);
+    }
+    
+    if let Ok(entries) = std::fs::read_dir(folder_path) {
+        for entry in entries.flatten() {
+            if let Some(file_name) = entry.file_name().to_str() {
+                let file_name_lower = file_name.to_lowercase();
+                for pattern in &common_exe_patterns {
+                    if file_name_lower.contains(&pattern.to_lowercase()) {
+                        return true;
+                    }
+                }
+            }
+        }
+    }
+    
+    false
 } 
