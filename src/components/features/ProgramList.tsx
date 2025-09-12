@@ -25,7 +25,6 @@ import {
   useToast,
   Badge,
   Collapse,
-  IconButton,
   Wrap,
   WrapItem,
   Tag,
@@ -632,11 +631,6 @@ export const ProgramList: React.FC = () => {
                     />
                     <VStack align="flex-start" spacing={1} flex="1">
                       <Heading size="sm">{program.name}</Heading>
-                      {program.install_location && (
-                        <Text fontSize="xs" color="gray.500" noOfLines={1} title={program.install_location}>
-                          📁 {program.install_location}
-                        </Text>
-                      )}
                     </VStack>
                   </HStack>
                   

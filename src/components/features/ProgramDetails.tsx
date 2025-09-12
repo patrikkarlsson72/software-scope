@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Modal,
   ModalOverlay,
@@ -30,12 +30,14 @@ import {
   AlertDialogContent,
   AlertDialogOverlay,
   useDisclosure,
+  Spinner,
 } from '@chakra-ui/react';
-import { ProgramInfo } from '../../types/ProgramInfo';
-import { ExternalLinkIcon, ChevronDownIcon, ChevronUpIcon, ViewIcon, DeleteIcon, EditIcon } from '@chakra-ui/icons';
+import { ProgramInfo, AteaInformation } from '../../types/ProgramInfo';
+import { ExternalLinkIcon, ChevronDownIcon, ChevronUpIcon, ViewIcon, DeleteIcon, EditIcon, FolderIcon } from '@chakra-ui/icons';
 import { ProgramIcon } from '../common/ProgramIcon';
 import { LogViewer } from '../common/LogViewer';
 import { useSettings } from '../../contexts/SettingsContext';
+import { invoke } from '@tauri-apps/api/tauri';
 
 
 interface ProgramDetailsProps {
@@ -49,9 +51,38 @@ export const ProgramDetails: React.FC<ProgramDetailsProps> = ({ program, isOpen,
   const { settings } = useSettings();
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [isLogViewerOpen, setIsLogViewerOpen] = useState(false);
+  const [ateaInfo, setAteaInfo] = useState<AteaInformation | null>(null);
+  const [isLoadingAtea, setIsLoadingAtea] = useState(false);
+  const [ateaError, setAteaError] = useState<string | null>(null);
   const { isOpen: isUninstallOpen, onOpen: onUninstallOpen, onClose: onUninstallClose } = useDisclosure();
   const { isOpen: isModifyOpen, onOpen: onModifyOpen, onClose: onModifyClose } = useDisclosure();
   const cancelRef = React.useRef<HTMLButtonElement>(null);
+
+  // Fetch Atea information when program is VF Managed
+  useEffect(() => {
+    if (program.is_vf_deployed && program.comments) {
+      // Extract APPID from comments (format: "APPID: 12345")
+      const appidMatch = program.comments.match(/APPID:\s*(\d+)/);
+      if (appidMatch) {
+        const appid = appidMatch[1];
+        setIsLoadingAtea(true);
+        setAteaError(null);
+        
+        invoke<AteaInformation>('get_atea_information', { appid })
+          .then((data) => {
+            setAteaInfo(data);
+            setIsLoadingAtea(false);
+          })
+          .catch((error) => {
+            setAteaError(error);
+            setIsLoadingAtea(false);
+          });
+      }
+    } else {
+      setAteaInfo(null);
+      setAteaError(null);
+    }
+  }, [program.is_vf_deployed, program.comments]);
 
   const handleCopy = (text: string, what: string) => {
     navigator.clipboard.writeText(text);
@@ -99,6 +130,19 @@ export const ProgramDetails: React.FC<ProgramDetailsProps> = ({ program, isOpen,
         duration: 5000,
       });
       onModifyClose();
+    }
+  };
+
+  const handleOpenProgramFiles = async () => {
+    try {
+      await invoke('open_program_files_folder', { architecture: program.architecture });
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: `Failed to open Program Files folder: ${error}`,
+        status: 'error',
+        duration: 3000,
+      });
     }
   };
 
@@ -199,6 +243,131 @@ export const ProgramDetails: React.FC<ProgramDetailsProps> = ({ program, isOpen,
                 </AccordionPanel>
               </AccordionItem>
 
+              {/* Atea Information - Only for VF Managed programs */}
+              {program.is_vf_deployed && (
+                <AccordionItem>
+                  <h2>
+                    <AccordionButton>
+                      <Box flex="1" textAlign="left">
+                        <Heading size="sm">Atea Information</Heading>
+                      </Box>
+                      <AccordionIcon />
+                    </AccordionButton>
+                  </h2>
+                  <AccordionPanel pb={4}>
+                    {isLoadingAtea ? (
+                      <HStack spacing={2} justify="center" py={4}>
+                        <Spinner size="sm" color="blue.500" />
+                        <Text color="gray.600">Loading Atea information...</Text>
+                      </HStack>
+                    ) : ateaError ? (
+                      <Box p={4} bg="red.50" borderRadius="md" border="1px solid" borderColor="red.200">
+                        <Text color="red.600" fontSize="sm">
+                          Error loading Atea information: {ateaError}
+                        </Text>
+                      </Box>
+                    ) : ateaInfo ? (
+                      <Grid templateColumns="140px 1fr" gap={3}>
+                        {ateaInfo.appid && (
+                          <>
+                            <GridItem><Text color="gray.600" fontWeight="medium">APPID</Text></GridItem>
+                            <GridItem>
+                              <HStack>
+                                <Text fontSize="sm" fontFamily="monospace">
+                                  {ateaInfo.appid}
+                                </Text>
+                                <Button 
+                                  size="xs"
+                                  onClick={() => handleCopy(ateaInfo.appid!, 'APPID')}
+                                >
+                                  Copy
+                                </Button>
+                              </HStack>
+                            </GridItem>
+                          </>
+                        )}
+                        {ateaInfo.app_reference && (
+                          <>
+                            <GridItem><Text color="gray.600" fontWeight="medium">APP Reference</Text></GridItem>
+                            <GridItem>
+                              <HStack>
+                                <Text fontSize="sm" fontFamily="monospace" wordBreak="break-all">
+                                  {ateaInfo.app_reference}
+                                </Text>
+                                <Button 
+                                  size="xs"
+                                  onClick={() => handleCopy(ateaInfo.app_reference!, 'APP Reference')}
+                                >
+                                  Copy
+                                </Button>
+                              </HStack>
+                            </GridItem>
+                          </>
+                        )}
+                        {ateaInfo.app_script_author && (
+                          <>
+                            <GridItem><Text color="gray.600" fontWeight="medium">Script Author</Text></GridItem>
+                            <GridItem><Text>{ateaInfo.app_script_author}</Text></GridItem>
+                          </>
+                        )}
+                        {ateaInfo.app_update && (
+                          <>
+                            <GridItem><Text color="gray.600" fontWeight="medium">App Update</Text></GridItem>
+                            <GridItem><Text>{ateaInfo.app_update}</Text></GridItem>
+                          </>
+                        )}
+                        {ateaInfo.architecture && (
+                          <>
+                            <GridItem><Text color="gray.600" fontWeight="medium">Architecture</Text></GridItem>
+                            <GridItem><Text>{ateaInfo.architecture}</Text></GridItem>
+                          </>
+                        )}
+                        {ateaInfo.date_time && (
+                          <>
+                            <GridItem><Text color="gray.600" fontWeight="medium">Date Time</Text></GridItem>
+                            <GridItem><Text>{ateaInfo.date_time}</Text></GridItem>
+                          </>
+                        )}
+                        {ateaInfo.language && (
+                          <>
+                            <GridItem><Text color="gray.600" fontWeight="medium">Language</Text></GridItem>
+                            <GridItem><Text>{ateaInfo.language}</Text></GridItem>
+                          </>
+                        )}
+                        {ateaInfo.manufacturer && (
+                          <>
+                            <GridItem><Text color="gray.600" fontWeight="medium">Manufacturer</Text></GridItem>
+                            <GridItem><Text>{ateaInfo.manufacturer}</Text></GridItem>
+                          </>
+                        )}
+                        {ateaInfo.name && (
+                          <>
+                            <GridItem><Text color="gray.600" fontWeight="medium">Name</Text></GridItem>
+                            <GridItem><Text>{ateaInfo.name}</Text></GridItem>
+                          </>
+                        )}
+                        {ateaInfo.revision && (
+                          <>
+                            <GridItem><Text color="gray.600" fontWeight="medium">Revision</Text></GridItem>
+                            <GridItem><Text>{ateaInfo.revision}</Text></GridItem>
+                          </>
+                        )}
+                        {ateaInfo.version && (
+                          <>
+                            <GridItem><Text color="gray.600" fontWeight="medium">Version</Text></GridItem>
+                            <GridItem><Text>{ateaInfo.version}</Text></GridItem>
+                          </>
+                        )}
+                      </Grid>
+                    ) : (
+                      <Text color="gray.500" fontSize="sm">
+                        No Atea information available
+                      </Text>
+                    )}
+                  </AccordionPanel>
+                </AccordionItem>
+              )}
+
               {/* Installation Information */}
               <AccordionItem>
                 <h2>
@@ -225,6 +394,18 @@ export const ProgramDetails: React.FC<ProgramDetailsProps> = ({ program, isOpen,
                             >
                               Copy
                             </Button>
+                            {(program.architecture === '64-bit' || program.architecture === '32-bit') && (
+                              <Button
+                                size="xs"
+                                leftIcon={<FolderIcon />}
+                                onClick={handleOpenProgramFiles}
+                                colorScheme="blue"
+                                variant="outline"
+                                title={`Open ${program.architecture === '64-bit' ? 'C:\\Program Files' : 'C:\\Program Files (x86)'}`}
+                              >
+                                Open
+                              </Button>
+                            )}
                           </HStack>
                         </GridItem>
                       </>

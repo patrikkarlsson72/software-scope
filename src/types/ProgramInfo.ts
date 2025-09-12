@@ -36,3 +36,17 @@ export interface ProgramInfo {
   installation_source: 'System' | 'User' | 'Filesystem';
   is_vf_deployed: boolean;
 }
+
+export interface AteaInformation {
+  appid?: string;
+  app_reference?: string;
+  app_script_author?: string;
+  app_update?: string;
+  architecture?: string;
+  date_time?: string;
+  language?: string;
+  manufacturer?: string;
+  name?: string;
+  revision?: string;
+  version?: string;
+}

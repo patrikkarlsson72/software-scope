@@ -37,7 +37,9 @@ fn main() {
             extract_icon_from_ico,
             get_icon_cache_stats,
             clear_icon_cache,
-            resolve_icon_path_command
+            resolve_icon_path_command,
+            get_atea_information,
+            open_program_files_folder
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

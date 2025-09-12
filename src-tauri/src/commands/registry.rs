@@ -277,6 +277,21 @@ pub struct DebugIconInfo {
     pub file_exists: bool,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct AteaInformation {
+    pub appid: Option<String>,
+    pub app_reference: Option<String>,
+    pub app_script_author: Option<String>,
+    pub app_update: Option<String>,
+    pub architecture: Option<String>,
+    pub date_time: Option<String>,
+    pub language: Option<String>,
+    pub manufacturer: Option<String>,
+    pub name: Option<String>,
+    pub revision: Option<String>,
+    pub version: Option<String>,
+}
+
 fn extract_icon_path(icon_path: &str) -> Option<String> {
     let parts: Vec<&str> = icon_path.split(',').collect();
     let path = parts[0].trim_matches('"');
@@ -937,4 +952,63 @@ fn is_likely_vf_managed_folder(folder_path: &str, _program_name: &str) -> bool {
     }
     
     false
+}
+
+#[tauri::command]
+pub fn get_atea_information(appid: String) -> Result<AteaInformation, String> {
+    let hklm = RegKey::predef(HKEY_LOCAL_MACHINE);
+    let atea_path = "SOFTWARE\\Atea\\Applications";
+    
+    if let Ok(atea_key) = hklm.open_subkey(atea_path) {
+        // Find the GUID that matches the APPID
+        for key_result in atea_key.enum_keys() {
+            if let Ok(guid) = key_result {
+                if let Ok(app_key) = atea_key.open_subkey(&guid) {
+                    // Check if this GUID has the matching APPID
+                    if let Ok(stored_appid) = app_key.get_value::<String, _>("APPID") {
+                        if stored_appid == appid {
+                            // Found the matching app, extract all Atea information
+                            return Ok(AteaInformation {
+                                appid: app_key.get_value("APPID").ok(),
+                                app_reference: app_key.get_value("APPReference").ok(),
+                                app_script_author: app_key.get_value("APPScriptAuthor").ok(),
+                                app_update: app_key.get_value("AppUpdate").ok(),
+                                architecture: app_key.get_value("Architecture").ok(),
+                                date_time: app_key.get_value("DateTime").ok(),
+                                language: app_key.get_value("Language").ok(),
+                                manufacturer: app_key.get_value("Manufacturer").ok(),
+                                name: app_key.get_value("Name").ok(),
+                                revision: app_key.get_value("Revision").ok(),
+                                version: app_key.get_value("Version").ok(),
+                            });
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    Err(format!("Atea information not found for APPID: {}", appid))
+}
+
+#[tauri::command]
+pub fn open_program_files_folder(architecture: String) -> Result<(), String> {
+    let folder_path = match architecture.as_str() {
+        "64-bit" => r"C:\Program Files",
+        "32-bit" => r"C:\Program Files (x86)",
+        _ => return Err(format!("Unsupported architecture: {}", architecture)),
+    };
+    
+    // Check if folder exists
+    if !std::path::Path::new(folder_path).exists() {
+        return Err(format!("Folder does not exist: {}", folder_path));
+    }
+    
+    // Open Windows Explorer
+    std::process::Command::new("explorer")
+        .arg(folder_path)
+        .spawn()
+        .map_err(|e| format!("Failed to open folder: {}", e))?;
+    
+    Ok(())
 } 
