@@ -22,7 +22,7 @@ interface AboutPanelProps {
 }
 
 export const AboutPanel: React.FC<AboutPanelProps> = ({ isOpen, onClose }) => {
-  const appVersion = '1.1.9';
+  const appVersion = __APP_VERSION__;
   const buildDate = new Date().toLocaleDateString();
   
   return (
@@ -74,7 +74,7 @@ export const AboutPanel: React.FC<AboutPanelProps> = ({ isOpen, onClose }) => {
               <Box>
                 <Text fontWeight="semibold" color="gray.700">Copyright</Text>
                 <Text fontSize="sm" color="gray.600">
-                  © 2024 Software Scope. All rights reserved.
+                  © 2025 Software Scope. All rights reserved.
                 </Text>
               </Box>
             </VStack>
