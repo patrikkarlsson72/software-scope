@@ -356,6 +356,88 @@
    - VF-specific export templates with log integration
    - **Fixed VF Managed applications not showing install location and shortcuts** (v1.1.5)
 
+## Recent Updates (v1.1.9) ⭐ **NEW**
+
+### Draggable Modal Functionality
+- **New Feature**: Added draggable functionality to application card modal
+- **Key Features**:
+  - **Entire Header Draggable**: Click and drag anywhere on the modal header to reposition
+  - **Visual Feedback**: Cursor changes to "grab" on hover and "move" while dragging
+  - **Viewport Constraints**: Modal stays within screen boundaries (keeps at least 50px visible)
+  - **Always Centered**: Modal always starts centered when opened
+  - **Smooth Animations**: Disabled during drag for direct mouse following, enabled otherwise
+- **Technical Implementation**:
+  - Added drag state management with `useState` and `useRef`
+  - Implemented mouse event handlers (`onMouseDown`, `onMouseMove`, `onMouseUp`)
+  - Added viewport boundary detection and constraint logic
+  - Proper event cleanup to prevent memory leaks
+  - Global mouse event listeners with proper cleanup
+
+### VF Log Viewer Mouse Wheel Scrolling Fix
+- **Issue Fixed**: Mouse wheel scrolling didn't work in VF Log Viewer when opened from application card
+- **Root Cause**: Nested modal context caused mouse wheel events to be captured by parent modal
+- **Solution**: Added explicit `onWheel` event handlers to all scrollable areas
+- **Technical Implementation**:
+  - Added `onWheel` handlers to log content area, file list, and main content container
+  - Used `e.stopPropagation()` to prevent parent modal from capturing events
+  - Implemented direct `scrollTop` manipulation for consistent behavior
+  - Applied to all scrollable areas for uniform experience
+- **Result**: Mouse wheel scrolling now works consistently in both contexts
+
+## Recent Updates (v1.1.7) ⭐ **NEW**
+
+### Program Card Preview Improvements
+- **Issue**: Card preview was cluttered with too much information including install location
+- **Solution**: Streamlined card preview to show only essential information
+- **Key Improvements**:
+  - **Removed install location** from card preview for cleaner interface
+  - **Added APPID display** for VF Managed programs in card preview
+  - **Fixed duplicate "APPID" text** issue in preview display
+  - **Simplified card preview** to show only: Publisher, Version, Installed date, Size, and APPID
+  - **Moved install location** to detailed view only
+
+### Atea Information Integration
+- **New Feature**: Added comprehensive Atea Information section for VF Managed programs
+- **Key Features**:
+  - **Registry Integration**: Fetches data from `HKEY_LOCAL_MACHINE\SOFTWARE\Atea\Applications`
+  - **Complete Field Display**: Shows all Atea registry fields (APPID, APP Reference, Script Author, App Update, Architecture, Date Time, Language, Manufacturer, Name, Revision, Version)
+  - **Smart Display Logic**: Only appears for VF Managed programs with valid APPID
+  - **Loading States**: Includes loading spinner and error handling
+  - **Positioned Correctly**: Appears below Basic Information as requested
+
+### Quick Access to Program Files
+- **New Feature**: Added "Open" button next to Install Location in detailed view
+- **Smart Architecture Detection**:
+  - **64-bit programs** → Opens `C:\Program Files`
+  - **32-bit programs** → Opens `C:\Program Files (x86)`
+  - **User/Unknown architecture** → No button shown
+- **Validation**: Only shows for programs with valid install location and architecture
+- **Folder Existence Check**: Validates folder exists before showing button
+
+### UI/UX Enhancements
+- **Card Layout Optimization**: Moved install location to detailed view only
+- **Button Improvements**: Added folder emoji (📁) and increased button size to prevent text overlap
+- **Atea Information Section**: Collapsible section with clean key-value display and copy buttons
+- **Error Handling**: Proper error messages and loading states throughout
+
+### Technical Implementation
+- **Backend Enhancements**:
+  - Added `get_atea_information` Tauri command for registry data fetching
+  - Added `open_program_files_folder` command for Windows Explorer integration
+  - Enhanced registry scanning with APPID-based Atea data lookup
+  - Added `AteaInformation` struct with all registry fields
+- **Frontend Updates**:
+  - Updated `ProgramDetails.tsx` with Atea Information section
+  - Modified `ProgramList.tsx` for improved card preview
+  - Added proper error handling and loading states
+  - Fixed icon import issues causing app crashes
+
+### Bug Fixes
+- Fixed duplicate "APPID" text in card preview
+- Resolved app loading issues caused by non-existent icon imports
+- Fixed button text overlap in Install Location section
+- Removed unused `IconButton` import causing build errors
+
 ## Recent Updates (v1.1.6) ⭐ **NEW**
 
 ### Complete Filter System Redesign

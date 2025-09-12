@@ -18,16 +18,17 @@
   - Sorting options (Name, Publisher, Version)  
   - Export menu (CSV, HTML, XML, Text)  
   - Program display area: Grid of program cards  
-- **Program Card**  
+- **Program Card** ⭐ **UPDATED v1.1.7**
   - Icon (cached or fallback)  
   - Program name  
-  - Publisher  
-  - Version  
-  - Install date  
-  - **File size** (human-readable format) ⭐ **NEW**
-  - **Install location** (with folder icon) ⭐ **NEW**
-  - Architecture (32/64-bit)
+  - **Publisher** (in preview)
+  - **Version** (in preview)
+  - **Install date** (in preview)
+  - **File size** (human-readable format) (in preview)
+  - **APPID** (for VF Managed programs only) (in preview)
+  - Architecture (32/64-bit) (badge)
   - VF deployment badge (purple) when applicable
+  - **Note**: Install location moved to detailed view only for cleaner preview
 
 ## Core Components
 - **Search Bar**: Real-time filtering of program list with flexible width.  
@@ -44,13 +45,20 @@
 - **Export Button**: Dropdown with export format choices.  
 - **Settings Panel**: Accessible from header.
 
-## Program Details Modal ⭐ **ENHANCED**
+## Program Details Modal ⭐ **ENHANCED v1.1.9**
 - **Basic Information**: Program name, publisher, version, install date, installation source
-- **Installation Information** ⭐ **NEW**:
-  - Install location and source paths
+- **Atea Information** ⭐ **NEW v1.1.7** (VF Managed programs only):
+  - APPID, APP Reference, Script Author, App Update
+  - Architecture, Date Time, Language, Manufacturer
+  - Name, Revision, Version
+  - Loading states and error handling
+  - Copy buttons for important fields
+- **Installation Information** ⭐ **ENHANCED v1.1.7**:
+  - Install location with **"Open" button** for Program Files access
   - File size in human-readable format (KB/MB/GB)
   - Installer details and MSI information
   - Release type and language information
+  - **Quick Access**: Opens correct Program Files folder (64-bit → C:\Program Files, 32-bit → C:\Program Files (x86))
 - **Folder Information** ⭐ **NEW**:
   - Folder creation and modification dates
   - Folder ownership information
@@ -61,7 +69,13 @@
 - **Additional Information**: Comments, URLs, registry details
 - **Advanced Details**: Expandable section with technical information
 - **VF Log Viewer**: For VF-deployed applications
-- **Action Buttons** ⭐ **NEW**: Uninstall and Modify buttons with confirmation dialogs  
+- **Action Buttons** ⭐ **NEW**: Uninstall and Modify buttons with confirmation dialogs
+- **Draggable Modal** ⭐ **NEW v1.1.8**:
+  - Entire header area is draggable for repositioning
+  - Visual cursor feedback (grab/move cursors)
+  - Viewport constraints to keep modal accessible
+  - Always starts centered when opened
+  - Smooth animations when not dragging  
 
 ## Interaction Patterns
 - **Search**: Typing in the search bar instantly filters results.  
@@ -73,6 +87,11 @@
 - **Filter/Sort**: Selecting filter or sort options refreshes the program grid.  
 - **VF Filter**: Dropdown with options (All Applications, VF Managed, Other Apps) for company-specific filtering.  
 - **Program Card Click**: Opens modal with detailed program information (collapsible sections).  
+- **Modal Dragging** ⭐ **NEW v1.1.9**:
+  - Click and drag anywhere on the modal header to reposition
+  - Cursor changes to "grab" on hover, "move" while dragging
+  - Modal constrained to stay within viewport boundaries
+  - Always returns to center when reopened
 - **Export**: Clicking export menu prompts file download.  
 - **Settings**: Opens configuration panel (e.g., cache, log folders).  
 

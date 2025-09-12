@@ -2,6 +2,92 @@
 
 All notable changes to Software Scope will be documented in this file.
 
+## [1.1.9] - 2025-01-02
+
+### Added
+- **Draggable Modal Functionality**
+  - Entire header area of application card modal is now draggable
+  - Visual cursor feedback (grab/move cursors) for better UX
+  - Viewport constraints to keep modal accessible (50px minimum visibility)
+  - Always starts centered when opened for consistent behavior
+  - Smooth animations disabled during drag for direct mouse following
+
+### Fixed
+- **VF Log Viewer Mouse Wheel Scrolling**
+  - Fixed mouse wheel scrolling not working when opened from application card
+  - Added explicit `onWheel` event handlers to all scrollable areas
+  - Prevents parent modal from capturing wheel events in nested modal context
+  - Mouse wheel scrolling now works consistently in both contexts
+
+### Technical Changes
+- **ProgramDetails.tsx**
+  - Added drag state management with `useState` and `useRef`
+  - Implemented mouse event handlers with proper cleanup
+  - Added viewport boundary detection and constraint logic
+  - Enhanced modal positioning with fixed positioning and transform controls
+
+- **LogViewer.tsx**
+  - Added `onWheel` event handlers to log content area, file list, and main container
+  - Implemented `e.stopPropagation()` to prevent event capture by parent modal
+  - Added direct `scrollTop` manipulation for consistent scrolling behavior
+
+## [1.1.7] - 2025-09-11
+
+### Enhanced
+- **Program Card Preview Improvements**
+  - Removed install location from card preview for cleaner interface
+  - Added APPID display for VF Managed programs in card preview
+  - Fixed duplicate "APPID" text issue in preview display
+  - Simplified card preview to show only: Publisher, Version, Installed date, Size, and APPID
+
+- **Atea Information Integration**
+  - Added new "Atea Information" section for VF Managed programs
+  - Fetches data from `HKEY_LOCAL_MACHINE\SOFTWARE\Atea\Applications` registry
+  - Displays all Atea registry fields: APPID, APP Reference, Script Author, App Update, Architecture, Date Time, Language, Manufacturer, Name, Revision, Version
+  - Only appears for VF Managed programs with valid APPID
+  - Includes loading states and error handling
+
+- **Quick Access to Program Files**
+  - Added "Open" button next to Install Location in detailed view
+  - Automatically opens correct Program Files folder based on architecture:
+    - 64-bit programs → `C:\Program Files`
+    - 32-bit programs → `C:\Program Files (x86)`
+  - Only shows for programs with valid install location and architecture
+  - Includes folder existence validation before opening
+
+### UI/UX Improvements
+- **Card Layout Optimization**
+  - Moved install location to detailed view only
+  - Improved card preview readability with focused information
+  - Added folder emoji (📁) for visual clarity on Open button
+  - Increased button size to prevent text overlap
+
+- **Atea Information Section**
+  - Collapsible section with clean key-value display
+  - Copy buttons for important fields (APPID, APP Reference)
+  - Loading spinner during data fetch
+  - Error message display if Atea data unavailable
+  - Positioned below Basic Information as requested
+
+### Technical Changes
+- **Backend Enhancements**
+  - Added `get_atea_information` Tauri command for registry data fetching
+  - Added `open_program_files_folder` command for Windows Explorer integration
+  - Enhanced registry scanning with APPID-based Atea data lookup
+  - Added `AteaInformation` struct with all registry fields
+
+- **Frontend Updates**
+  - Updated `ProgramDetails.tsx` with Atea Information section
+  - Modified `ProgramList.tsx` for improved card preview
+  - Added proper error handling and loading states
+  - Fixed icon import issues causing app crashes
+
+### Bug Fixes
+- Fixed duplicate "APPID" text in card preview
+- Resolved app loading issues caused by non-existent icon imports
+- Fixed button text overlap in Install Location section
+- Removed unused `IconButton` import causing build errors
+
 ## [1.1.6] - 2025-09-11
 
 ### Enhanced
