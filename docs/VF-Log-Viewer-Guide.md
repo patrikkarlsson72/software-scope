@@ -24,6 +24,7 @@ The VF Log Viewer is a comprehensive log viewing solution integrated directly in
 - **File Browser**: Intuitive file list with metadata display
 - **Content Viewer**: Syntax-highlighted log content display
 - **Quick Actions**: Download logs or open in external editor
+- **Mouse Wheel Support**: Full mouse wheel scrolling support in all contexts
 
 ## Configuration
 
@@ -149,6 +150,12 @@ MyApp.log → MyApp
 1. **Adjust Size Limit**: Increase the maximum file size in settings
 2. **Use External Editor**: Click the external editor button for very large files
 3. **Check File Size**: Verify the file isn't corrupted or unusually large
+
+#### Mouse Wheel Scrolling Issues
+1. **Nested Modal Context**: Mouse wheel scrolling is now fully supported in all contexts
+2. **Scrollbar Alternative**: If mouse wheel doesn't work, use the scrollbar on the right side
+3. **Browser Compatibility**: Ensure you're using a modern browser with mouse wheel support
+4. **Refresh**: Try refreshing the log viewer if scrolling seems unresponsive
 
 ### Error Messages
 

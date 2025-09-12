@@ -1,7 +1,8 @@
 import { Box, Flex, Heading, Button, useDisclosure, HStack } from '@chakra-ui/react';
-import { SettingsIcon, ViewIcon } from '@chakra-ui/icons';
+import { SettingsIcon, ViewIcon, InfoIcon } from '@chakra-ui/icons';
 import { SettingsPanel } from '../common/SettingsPanel';
 import { LogViewer } from '../common/LogViewer';
+import { AboutPanel } from '../common/AboutPanel';
 import { useSettings } from '../../contexts/SettingsContext';
 
 interface MainLayoutProps {
@@ -11,6 +12,7 @@ interface MainLayoutProps {
 export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const { isOpen, onToggle } = useDisclosure();
   const { isOpen: isLogViewerOpen, onOpen: onLogViewerOpen, onClose: onLogViewerClose } = useDisclosure();
+  const { isOpen: isAboutOpen, onOpen: onAboutOpen, onClose: onAboutClose } = useDisclosure();
   const { settings } = useSettings();
 
   return (
@@ -31,6 +33,16 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                 VF Logs
               </Button>
             )}
+            <Button
+              leftIcon={<InfoIcon />}
+              variant="ghost"
+              color="white"
+              _hover={{ bg: 'whiteAlpha.200' }}
+              onClick={onAboutOpen}
+              size="sm"
+            >
+              About
+            </Button>
             <Button
               leftIcon={<SettingsIcon />}
               variant="ghost"
@@ -58,6 +70,12 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       <LogViewer
         isOpen={isLogViewerOpen}
         onClose={onLogViewerClose}
+      />
+
+      {/* About Modal */}
+      <AboutPanel
+        isOpen={isAboutOpen}
+        onClose={onAboutClose}
       />
     </Flex>
   );
