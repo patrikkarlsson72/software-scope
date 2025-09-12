@@ -356,6 +356,23 @@
    - VF-specific export templates with log integration
    - **Fixed VF Managed applications not showing install location and shortcuts** (v1.1.5)
 
+## Recent Updates (v1.2.0) ⭐ **NEW**
+
+### About Section Implementation
+- **New Feature**: Added comprehensive About section accessible from header
+- **Key Features**:
+  - **About Button**: Added InfoIcon button in header next to Settings
+  - **Modal Dialog**: Clean modal interface showing app information
+  - **Dynamic Version**: Version automatically reads from package.json at build time
+  - **App Information**: Displays version, build date, technology stack, and copyright
+  - **UI Integration**: Seamlessly integrated with existing MainLayout design
+- **Technical Implementation**:
+  - Created AboutPanel component with modal interface
+  - Configured Vite to inject version from package.json using define
+  - Added TypeScript declaration for __APP_VERSION__ global
+  - Updated MainLayout with About button and modal integration
+  - Fixed TypeScript build errors for MSI generation
+
 ## Recent Updates (v1.1.9) ⭐ **NEW**
 
 ### Draggable Modal Functionality

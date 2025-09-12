@@ -11,7 +11,6 @@ import {
   HStack,
   Icon,
   Box,
-  Link,
   Badge,
 } from '@chakra-ui/react';
 import { InfoIcon } from '@chakra-ui/icons';

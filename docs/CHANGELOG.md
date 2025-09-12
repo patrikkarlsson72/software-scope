@@ -2,6 +2,33 @@
 
 All notable changes to Software Scope will be documented in this file.
 
+## [1.2.0] - 2025-01-02
+
+### Added
+- **About Section**
+  - Added comprehensive About dialog accessible from header
+  - Displays app version, build date, and technology information
+  - Shows copyright notice and description
+  - Dynamic version reading from package.json at build time
+  - Clean modal interface matching existing UI design
+
+### Technical Changes
+- **Dynamic Version System**
+  - Configured Vite to inject version from package.json at build time
+  - Added TypeScript declaration for __APP_VERSION__ global
+  - Version now updates automatically on rebuild without manual changes
+  - Updated AboutPanel component to use dynamic version instead of hardcoded value
+
+- **UI Enhancements**
+  - Added About button to header with InfoIcon
+  - Integrated About modal with MainLayout using useDisclosure hook
+  - Maintained consistent styling with existing components
+  - Updated copyright year to 2025
+
+### Bug Fixes
+- Fixed unused Link import in AboutPanel causing TypeScript build errors
+- Resolved MSI build process issues
+
 ## [1.1.9] - 2025-01-02
 
 ### Added

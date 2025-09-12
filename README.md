@@ -2,7 +2,7 @@
 
 A modern Windows software management tool built with Tauri, React, and Rust. Provides detailed insights into installed programs and their registry information.
 
-**Current Version: 1.1.5** - Latest update includes fixes for VF Managed applications display issues.
+**Current Version: 1.2.0** - Latest update includes About section with dynamic version display and enhanced user experience.
 
 ## Features
 
@@ -74,6 +74,12 @@ A modern Windows software management tool built with Tauri, React, and Rust. Pro
   - Troubleshooting guides
   - Feature explanations
   - Future roadmap information
+
+- ℹ️ **About Section** ⭐ **NEW**
+  - Accessible from header with dedicated About button
+  - Displays app version, build date, and technology stack
+  - Dynamic version reading from package.json
+  - Copyright notice and project information
 
 - 📋 **VF Log Viewer** ⭐ **NEW**
   - Integrated VF deployment log viewer
@@ -170,7 +176,20 @@ The project is in active development. Recent major updates include:
 
 ## Recent Updates
 
-### Version 1.1.5 (Latest)
+### Version 1.2.0 (Latest)
+- **Added comprehensive About section with dynamic version display**
+- About dialog accessible from header with app information
+- Dynamic version reading from package.json at build time
+- Updated copyright year to 2025
+- Fixed TypeScript build errors for MSI generation
+
+### Version 1.1.9
+- **Added draggable modal functionality for program details**
+- Fixed VF Log Viewer mouse wheel scrolling issues
+- Enhanced modal positioning and viewport constraints
+- Improved user experience with visual cursor feedback
+
+### Version 1.1.5
 - **Fixed VF Managed applications not showing install location and shortcuts**
 - Enhanced install location detection with flexible matching patterns
 - Added specialized VF Managed application detection methods

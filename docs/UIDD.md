@@ -3,7 +3,7 @@
 ## Layout Structure
 - **Header Bar**  
   - Left: Application title *Software Scope*  
-  - Right: Settings button  
+  - Right: VF Logs button (if enabled), About button, Settings button  
 - **Main Content**  
   - Title: "Installed Programs"  
   - **Clean Search Interface** ⭐ **NEW**
@@ -44,6 +44,7 @@
 - **Program Cards**: Primary unit of display, each representing a program with VF deployment indicators.  
 - **Export Button**: Dropdown with export format choices.  
 - **Settings Panel**: Accessible from header.
+- **About Panel** ⭐ **NEW v1.2.0**: Modal dialog showing app version, build date, technology stack, and copyright information.
 
 ## Program Details Modal ⭐ **ENHANCED v1.1.9**
 - **Basic Information**: Program name, publisher, version, install date, installation source
@@ -93,7 +94,8 @@
   - Modal constrained to stay within viewport boundaries
   - Always returns to center when reopened
 - **Export**: Clicking export menu prompts file download.  
-- **Settings**: Opens configuration panel (e.g., cache, log folders).  
+- **Settings**: Opens configuration panel (e.g., cache, log folders).
+- **About**: Opens modal dialog with app version, build information, and copyright details.  
 
 ## Visual Design Elements & Color Scheme
 - **Overall Style**: Clean, minimal, Windows-inspired.  

@@ -17,14 +17,14 @@ Before building, update the version in **three** files:
 ```toml
 [package]
 name = "app"
-version = "1.1.6"  # Update this version
+version = "1.2.0"  # Update this version
 ```
 
 #### `package.json`
 ```json
 {
   "name": "software-scope",
-  "version": "1.1.6",  // Update this version
+  "version": "1.2.0",  // Update this version
   ...
 }
 ```
@@ -34,7 +34,7 @@ version = "1.1.6"  # Update this version
 {
   "package": {
     "productName": "software-scope",
-    "version": "1.1.6"  // Update this version
+    "version": "1.2.0"  // Update this version
   }
 }
 ```
