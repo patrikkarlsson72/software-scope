@@ -1,0 +1,25 @@
+# Cursor AI Rules for Software Scope Project
+
+## Critical Safety Rules
+- **NEVER run destructive commands without explicit user permission**
+- **NEVER run `cargo clean` without asking first** - it deletes all build artifacts including MSI files
+- **NEVER delete or modify existing MSI builds or versions** without explicit permission
+- **ALWAYS check what files will be affected** before running any build or clean commands
+
+## Build and File Management
+- Always preserve existing MSI builds and versions
+- Ask before running commands that could affect existing files
+- Use `list_dir` to check what files exist before making changes
+- When building new versions, ask if previous versions should be preserved
+
+## Best Practices
+- Always ask "Should I proceed?" before running potentially destructive commands
+- Check the impact of commands before executing them
+- Preserve user's work and existing builds
+- Be extra careful with build artifacts and generated files
+
+## Examples of Commands to Ask About First
+- `cargo clean`
+- `rm -rf` or `Remove-Item -Recurse -Force`
+- Any command that modifies or deletes build outputs
+- Commands that could affect existing MSI files or installers

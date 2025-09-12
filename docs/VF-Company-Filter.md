@@ -187,5 +187,26 @@ interface ProgramInfo {
 - All processing performed locally
 - No logging of sensitive information
 
+## Recent Updates (v1.1.5)
+
+### VF Managed Application Display Fixes
+**Issue Resolved**: VF Managed applications were not displaying complete information in the details panel, specifically missing "Install Location" and "Shortcuts" information.
+
+**Technical Solution**:
+- Enhanced install location detection to handle empty or invalid registry paths
+- Implemented specialized detection methods for VF Managed applications
+- Added flexible folder matching patterns for better application identification
+- Improved shortcut scanning for all applications
+
+**Files Modified**:
+- `src-tauri/src/commands/registry.rs` - Enhanced detection logic
+- Added `detect_vf_managed_location()` function for specialized VF app detection
+- Added `is_likely_vf_managed_folder()` for permissive verification
+
+**Result**: VF Managed applications now properly display:
+- Install Location (detected from Program Files)
+- Shortcuts (scanned from common locations)
+- All other application details
+
 ## Conclusion
-The VF Company Filter provides a powerful tool for IT administrators to manage and identify company-deployed applications. The feature integrates seamlessly with the existing SoftwareScope application while providing specialized functionality for VF-specific use cases.
+The VF Company Filter provides a powerful tool for IT administrators to manage and identify company-deployed applications. The feature integrates seamlessly with the existing SoftwareScope application while providing specialized functionality for VF-specific use cases. With the recent fixes in v1.1.5, VF Managed applications now display complete information including install locations and shortcuts.

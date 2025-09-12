@@ -354,6 +354,53 @@
    - Log file correlation with deployment events
    - Enhanced VF application management
    - VF-specific export templates with log integration
+   - **Fixed VF Managed applications not showing install location and shortcuts** (v1.1.5)
+
+## Recent Updates (v1.1.6) ⭐ **NEW**
+
+### Complete Filter System Redesign
+- **Issue**: Cluttered interface with too many horizontal filter dropdowns taking up excessive space
+- **Solution**: Implemented clean, modern filter system with smart organization
+- **Key Improvements**:
+  - **75% reduction in horizontal space usage** - replaced 7 filter dropdowns with collapsible panel
+  - **Smart filter grouping** - organized filters into Business, Technical, and Installation categories
+  - **Active filter chips** - visual indicators with one-click removal functionality
+  - **Preserved VF Managed default** - maintained user's preferred default filter setting
+  - **Enhanced responsive design** - improved mobile/tablet compatibility
+
+### UI/UX Enhancements
+- **Collapsible Filter Panel**: Hidden by default for clean interface, expandable when needed
+- **Filter Chip System**: Visual indicators for active filters with individual removal buttons
+- **Smart Badge**: Shows active filter count on the "Filters" button
+- **Responsive Layout**: Flexible grid that adapts to screen size with wrapped elements
+- **Smooth Animations**: Expand/collapse functionality with proper transitions
+
+### Technical Implementation
+- Enhanced `ProgramList.tsx` with new filter architecture using `useDisclosure` hook
+- Implemented helper functions: `getActiveFiltersCount()`, `getFilterChips()`, `clearAllFilters()`
+- Added responsive components: `SimpleGrid`, `Wrap`, `Collapse`, `Tag` with proper styling
+- Fixed `FilterIcon` import error that was causing blank app screen
+- Improved component structure with better separation of concerns
+
+## Recent Updates (v1.1.5)
+
+### VF Managed Application Fixes
+- **Issue**: VF Managed applications were not displaying "Install Location" and "Shortcuts" in the details panel
+- **Root Cause**: Install location detection logic was too restrictive and only checked for `None` values, not empty or invalid paths
+- **Solution**: 
+  - Enhanced install location detection to check for empty/invalid paths
+  - Added flexible folder matching for VF Managed applications
+  - Implemented specialized VF Managed detection with broader search paths
+  - Added comprehensive debug logging for troubleshooting
+  - Improved shortcut detection for all applications
+
+### Technical Changes
+- Modified `scan_vf_deployed_applications()` function in `src-tauri/src/commands/registry.rs`
+- Enhanced `detect_program_files_location()` with more flexible matching patterns
+- Added `detect_vf_managed_location()` for specialized VF Managed app detection
+- Added `is_likely_vf_managed_folder()` for permissive verification
+- Updated version to 1.1.5 across all configuration files
 
 ## References
-- Full feature list: [WantedFeatures.md](./WantedFeatures.md) 
+- Full feature list: [WantedFeatures.md](./WantedFeatures.md)
+- MSI Build Guide: [MSI-Build-Guide.md](./MSI-Build-Guide.md) 

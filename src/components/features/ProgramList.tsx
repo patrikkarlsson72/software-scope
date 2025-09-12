@@ -24,11 +24,20 @@ import {
   MenuItem,
   useToast,
   Badge,
+  Collapse,
+  IconButton,
+  Wrap,
+  WrapItem,
+  Tag,
+  TagLabel,
+  TagCloseButton,
+  useDisclosure,
+  Divider,
 } from '@chakra-ui/react';
 import { ProgramInfo } from '../../types/ProgramInfo';
 import { useDebounce } from '../../hooks/useDebounce';
 import { ProgramDetails } from './ProgramDetails';
-import { ChevronDownIcon } from '@chakra-ui/icons';
+import { ChevronDownIcon, ChevronRightIcon, CloseIcon } from '@chakra-ui/icons';
 import { ProgramIcon } from '../common/ProgramIcon';
 import { useSettings } from '../../contexts/SettingsContext';
 
@@ -42,6 +51,7 @@ type VFDeployment = 'all' | 'vf-managed' | 'other-apps';
 
 export const ProgramList: React.FC = () => {
   const { settings } = useSettings();
+  const { isOpen: isFiltersOpen, onToggle: onFiltersToggle } = useDisclosure();
   const [programs, setPrograms] = useState<ProgramInfo[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -64,6 +74,55 @@ export const ProgramList: React.FC = () => {
 
   const debouncedSearchTerm = useDebounce(searchTerm);
   const toast = useToast();
+
+  // Helper functions for filter management
+  const getActiveFiltersCount = () => {
+    let count = 0;
+    if (searchTerm) count++;
+    if (selectedPublisher) count++;
+    if (dateFilter !== 'all') count++;
+    if (programType !== 'all') count++;
+    if (architecture !== 'all') count++;
+    if (installationSource !== 'all') count++;
+    if (vfDeployment !== 'all') count++;
+    return count;
+  };
+
+  const clearAllFilters = () => {
+    setSearchTerm('');
+    setSelectedPublisher('');
+    setDateFilter('all');
+    setProgramType('all');
+    setArchitecture('all');
+    setInstallationSource('all');
+    // Keep VF deployment as 'vf-managed' to preserve default behavior
+  };
+
+  const getFilterChips = () => {
+    const chips = [];
+    if (searchTerm) {
+      chips.push({ key: 'search', label: `Search: "${searchTerm}"`, onRemove: () => setSearchTerm('') });
+    }
+    if (selectedPublisher) {
+      chips.push({ key: 'publisher', label: `Publisher: ${selectedPublisher}`, onRemove: () => setSelectedPublisher('') });
+    }
+    if (dateFilter !== 'all') {
+      chips.push({ key: 'date', label: `Date: ${dateFilter}`, onRemove: () => setDateFilter('all') });
+    }
+    if (programType !== 'all') {
+      chips.push({ key: 'type', label: `Type: ${programType}`, onRemove: () => setProgramType('all') });
+    }
+    if (architecture !== 'all') {
+      chips.push({ key: 'arch', label: `Arch: ${architecture}`, onRemove: () => setArchitecture('all') });
+    }
+    if (installationSource !== 'all') {
+      chips.push({ key: 'source', label: `Source: ${installationSource}`, onRemove: () => setInstallationSource('all') });
+    }
+    if (vfDeployment !== 'all') {
+      chips.push({ key: 'vf', label: `VF: ${vfDeployment}`, onRemove: () => setVfDeployment('all') });
+    }
+    return chips;
+  };
 
   // Format file size in human readable format
   const formatFileSize = (sizeInKB: number): string => {
@@ -331,113 +390,201 @@ export const ProgramList: React.FC = () => {
       </HStack>
       
       <Stack spacing={4}>
-        <HStack spacing={4} align="flex-start">
-          <InputGroup>
-            <Input
-              placeholder="Search programs..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              width="300px"
-            />
-            {isSearching && (
-              <InputRightElement>
-                <Spinner size="sm" color="brand.500" />
-              </InputRightElement>
-            )}
-          </InputGroup>
-
-          <Select
-            value={selectedPublisher}
-            onChange={(e) => setSelectedPublisher(e.target.value)}
-            width="250px"
-            placeholder="All Publishers"
-          >
-            {publishers.map((publisher) => (
-              <option key={publisher} value={publisher}>
-                {publisher}
-              </option>
-            ))}
-          </Select>
-
-          <Select
-            value={programType}
-            onChange={(e) => setProgramType(e.target.value as ProgramType)}
-            width="200px"
-          >
-            <option value="all">All Types</option>
-            <option value="Application">Applications</option>
-            <option value="SystemComponent">System Components</option>
-            <option value="Update">Updates</option>
-          </Select>
-
-          <Select
-            value={architecture}
-            onChange={(e) => setArchitecture(e.target.value as Architecture)}
-            width="150px"
-          >
-            <option value="all">All Architectures</option>
-            <option value="32-bit">32-bit</option>
-            <option value="64-bit">64-bit</option>
-            <option value="User">User</option>
-            <option value="Unknown">Unknown</option>
-          </Select>
-
-          <Select
-            value={installationSource}
-            onChange={(e) => setInstallationSource(e.target.value as InstallationSource)}
-            width="150px"
-          >
-            <option value="all">All Sources</option>
-            <option value="System">System</option>
-            <option value="User">User</option>
-            <option value="Filesystem">Filesystem</option>
-          </Select>
-
-          <Select
-            value={vfDeployment}
-            onChange={(e) => setVfDeployment(e.target.value as VFDeployment)}
-            width="150px"
-          >
-            <option value="all">All Applications</option>
-            <option value="vf-managed">VF Managed</option>
-            <option value="other-apps">Other Apps</option>
-          </Select>
-
-          <Text ml="auto" color="gray.600" fontSize="sm">
-            Showing {filteredAndSortedPrograms.length} of {programs.length} programs
-          </Text>
-        </HStack>
-
-        {/* Date Filter */}
-        <HStack spacing={4}>
-          <Select
-            value={dateFilter}
-            onChange={(e) => setDateFilter(e.target.value as DateFilter)}
-            width="200px"
-          >
-            <option value="all">All Time</option>
-            <option value="last7days">Last 7 Days</option>
-            <option value="last30days">Last 30 Days</option>
-            <option value="last90days">Last 90 Days</option>
-            <option value="custom">Custom Range</option>
-          </Select>
-
-          {dateFilter === 'custom' && (
-            <HStack>
+        {/* Main Search and Filter Controls */}
+        <VStack spacing={4} align="stretch">
+          {/* Search and Primary Controls */}
+          <HStack spacing={4} align="flex-start" wrap="wrap">
+            <InputGroup flex="1" minW="300px">
               <Input
-                type="date"
-                value={customDateRange.start}
-                onChange={(e) => setCustomDateRange((prev) => ({ ...prev, start: e.target.value }))}
+                placeholder="Search programs..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
               />
-              <Text>to</Text>
-              <Input
-                type="date"
-                value={customDateRange.end}
-                onChange={(e) => setCustomDateRange((prev) => ({ ...prev, end: e.target.value }))}
-              />
-            </HStack>
+              {isSearching && (
+                <InputRightElement>
+                  <Spinner size="sm" color="brand.500" />
+                </InputRightElement>
+              )}
+            </InputGroup>
+
+            <Button
+              leftIcon={isFiltersOpen ? <ChevronDownIcon /> : <ChevronRightIcon />}
+              onClick={onFiltersToggle}
+              variant="outline"
+              colorScheme="brand"
+              size="sm"
+            >
+              Filters {getActiveFiltersCount() > 0 && (
+                <Badge ml={2} colorScheme="brand" variant="solid" borderRadius="full">
+                  {getActiveFiltersCount()}
+                </Badge>
+              )}
+            </Button>
+
+            <Text color="gray.600" fontSize="sm" whiteSpace="nowrap">
+              Showing {filteredAndSortedPrograms.length} of {programs.length} programs
+            </Text>
+          </HStack>
+
+          {/* Active Filter Chips */}
+          {getActiveFiltersCount() > 0 && (
+            <Wrap spacing={2}>
+              {getFilterChips().map((chip) => (
+                <WrapItem key={chip.key}>
+                  <Tag size="sm" colorScheme="brand" borderRadius="full">
+                    <TagLabel>{chip.label}</TagLabel>
+                    <TagCloseButton onClick={chip.onRemove} />
+                  </Tag>
+                </WrapItem>
+              ))}
+              <WrapItem>
+                <Button
+                  size="xs"
+                  variant="ghost"
+                  colorScheme="brand"
+                  onClick={clearAllFilters}
+                  leftIcon={<CloseIcon />}
+                >
+                  Clear All
+                </Button>
+              </WrapItem>
+            </Wrap>
           )}
-        </HStack>
+
+          {/* Collapsible Filter Panel */}
+          <Collapse in={isFiltersOpen} animateOpacity>
+            <Box
+              p={4}
+              border="1px solid"
+              borderColor="gray.200"
+              borderRadius="md"
+              bg="gray.50"
+            >
+              <VStack spacing={4} align="stretch">
+                <HStack justify="space-between" align="center">
+                  <Heading size="sm" color="gray.700">Advanced Filters</Heading>
+                  <Text fontSize="xs" color="gray.500">
+                    Organize and filter your programs
+                  </Text>
+                </HStack>
+                
+                <Divider />
+
+                {/* Filter Groups */}
+                <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={4}>
+                  {/* Business Filters */}
+                  <VStack spacing={3} align="stretch">
+                    <Text fontWeight="semibold" color="gray.600" fontSize="sm">
+                      Business Filters
+                    </Text>
+                    
+                    <Select
+                      value={selectedPublisher}
+                      onChange={(e) => setSelectedPublisher(e.target.value)}
+                      placeholder="All Publishers"
+                      size="sm"
+                    >
+                      {publishers.map((publisher) => (
+                        <option key={publisher} value={publisher}>
+                          {publisher}
+                        </option>
+                      ))}
+                    </Select>
+
+                    <Select
+                      value={vfDeployment}
+                      onChange={(e) => setVfDeployment(e.target.value as VFDeployment)}
+                      size="sm"
+                    >
+                      <option value="all">All Applications</option>
+                      <option value="vf-managed">VF Managed</option>
+                      <option value="other-apps">Other Apps</option>
+                    </Select>
+                  </VStack>
+
+                  {/* Technical Filters */}
+                  <VStack spacing={3} align="stretch">
+                    <Text fontWeight="semibold" color="gray.600" fontSize="sm">
+                      Technical Filters
+                    </Text>
+                    
+                    <Select
+                      value={programType}
+                      onChange={(e) => setProgramType(e.target.value as ProgramType)}
+                      size="sm"
+                    >
+                      <option value="all">All Types</option>
+                      <option value="Application">Applications</option>
+                      <option value="SystemComponent">System Components</option>
+                      <option value="Update">Updates</option>
+                    </Select>
+
+                    <Select
+                      value={architecture}
+                      onChange={(e) => setArchitecture(e.target.value as Architecture)}
+                      size="sm"
+                    >
+                      <option value="all">All Architectures</option>
+                      <option value="32-bit">32-bit</option>
+                      <option value="64-bit">64-bit</option>
+                      <option value="User">User</option>
+                      <option value="Unknown">Unknown</option>
+                    </Select>
+                  </VStack>
+
+                  {/* Installation Filters */}
+                  <VStack spacing={3} align="stretch">
+                    <Text fontWeight="semibold" color="gray.600" fontSize="sm">
+                      Installation Filters
+                    </Text>
+                    
+                    <Select
+                      value={installationSource}
+                      onChange={(e) => setInstallationSource(e.target.value as InstallationSource)}
+                      size="sm"
+                    >
+                      <option value="all">All Sources</option>
+                      <option value="System">System</option>
+                      <option value="User">User</option>
+                      <option value="Filesystem">Filesystem</option>
+                    </Select>
+
+                    <Select
+                      value={dateFilter}
+                      onChange={(e) => setDateFilter(e.target.value as DateFilter)}
+                      size="sm"
+                    >
+                      <option value="all">All Time</option>
+                      <option value="last7days">Last 7 Days</option>
+                      <option value="last30days">Last 30 Days</option>
+                      <option value="last90days">Last 90 Days</option>
+                      <option value="custom">Custom Range</option>
+                    </Select>
+
+                    {dateFilter === 'custom' && (
+                      <VStack spacing={2} align="stretch">
+                        <Input
+                          type="date"
+                          size="sm"
+                          value={customDateRange.start}
+                          onChange={(e) => setCustomDateRange((prev) => ({ ...prev, start: e.target.value }))}
+                          placeholder="Start Date"
+                        />
+                        <Input
+                          type="date"
+                          size="sm"
+                          value={customDateRange.end}
+                          onChange={(e) => setCustomDateRange((prev) => ({ ...prev, end: e.target.value }))}
+                          placeholder="End Date"
+                        />
+                      </VStack>
+                    )}
+                  </VStack>
+                </SimpleGrid>
+              </VStack>
+            </Box>
+          </Collapse>
+        </VStack>
 
         {/* Sort Controls */}
         <ButtonGroup size="sm" variant="outline">
@@ -474,31 +621,41 @@ export const ProgramList: React.FC = () => {
               bg={program.is_vf_deployed ? 'purple.50' : undefined}
             >
               <CardBody>
-                <HStack spacing={3} align="flex-start" mb={2}>
-                  <ProgramIcon 
-                    programName={program.name} 
-                    size="24px"
-                    publisher={program.publisher}
-                    iconPath={program.icon_path}
-                    programType={program.program_type}
-                  />
-                  <Heading size="sm">{program.name}</Heading>
-                </HStack>
-                {program.publisher && <Text fontSize="sm" color="gray.600">Publisher: {program.publisher}</Text>}
-                {program.version && <Text fontSize="sm" color="gray.600">Version: {program.version}</Text>}
-                {program.install_date && settings.showInstallDate && (
-                  <Text fontSize="sm" color="gray.600">
-                    Installed: {new Date(program.install_date.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3')).toLocaleDateString()}
-                  </Text>
-                )}
-                {program.estimated_size && (
-                  <Text fontSize="sm" color="gray.600">Size: {formatFileSize(program.estimated_size)}</Text>
-                )}
-                {program.install_location && (
-                  <Text fontSize="xs" color="gray.500" noOfLines={1} title={program.install_location}>
-                    📁 {program.install_location}
-                  </Text>
-                )}
+                <VStack spacing={2} align="stretch">
+                  <HStack spacing={3} align="flex-start">
+                    <ProgramIcon 
+                      programName={program.name} 
+                      size="24px"
+                      publisher={program.publisher}
+                      iconPath={program.icon_path}
+                      programType={program.program_type}
+                    />
+                    <VStack align="flex-start" spacing={1} flex="1">
+                      <Heading size="sm">{program.name}</Heading>
+                      {program.install_location && (
+                        <Text fontSize="xs" color="gray.500" noOfLines={1} title={program.install_location}>
+                          📁 {program.install_location}
+                        </Text>
+                      )}
+                    </VStack>
+                  </HStack>
+                  
+                  <VStack spacing={1} align="stretch">
+                    {program.publisher && <Text fontSize="sm" color="gray.600">Publisher: {program.publisher}</Text>}
+                    {program.version && <Text fontSize="sm" color="gray.600">Version: {program.version}</Text>}
+                    {program.install_date && settings.showInstallDate && (
+                      <Text fontSize="sm" color="gray.600">
+                        Installed: {new Date(program.install_date.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3')).toLocaleDateString()}
+                      </Text>
+                    )}
+                    {program.estimated_size && (
+                      <Text fontSize="sm" color="gray.600">Size: {formatFileSize(program.estimated_size)}</Text>
+                    )}
+                    {program.is_vf_deployed && program.comments && (
+                      <Text fontSize="sm" color="gray.600">APPID: {program.comments}</Text>
+                    )}
+                  </VStack>
+                </VStack>
                 <HStack spacing={2} wrap="wrap">
                   {settings.showArchitecture && <Badge size="sm" colorScheme="blue">{program.architecture}</Badge>}
                   <Badge 

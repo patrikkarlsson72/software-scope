@@ -2,6 +2,8 @@
 
 A modern Windows software management tool built with Tauri, React, and Rust. Provides detailed insights into installed programs and their registry information.
 
+**Current Version: 1.1.5** - Latest update includes fixes for VF Managed applications display issues.
+
 ## Features
 
 ### Core Features
@@ -166,11 +168,31 @@ The project is in active development. Recent major updates include:
 
 ## Documentation
 
+## Recent Updates
+
+### Version 1.1.5 (Latest)
+- **Fixed VF Managed applications not showing install location and shortcuts**
+- Enhanced install location detection with flexible matching patterns
+- Added specialized VF Managed application detection methods
+- Improved shortcut scanning for all applications
+- Added comprehensive debug logging for troubleshooting
+
+### Previous Versions
+- **1.1.4**: Previous stable version
+- **1.1.3**: Previous version
+- **1.1.2**: Previous version
+- **1.1.1**: Previous version
+- **1.1.0**: Previous version
+
+## Documentation
+
 Comprehensive documentation is available in the [`docs/`](./docs/) directory:
 
 - **[Documentation Overview](./docs/README.md)** - Complete documentation index
+- **[MSI Build Guide](./docs/MSI-Build-Guide.md)** - Step-by-step guide for creating new MSI versions
 - **[Icon System Guide](./docs/Icon-System-Guide.md)** - Comprehensive guide for the icon system architecture and usage
 - **[VF Log Viewer Guide](./docs/VF-Log-Viewer-Guide.md)** - Detailed guide for the VF log viewing feature
+- **[VF Company Filter](./docs/VF-Company-Filter.md)** - VF-specific application filtering and management
 - **[Product Requirements](./docs/PRD.md)** - Product requirements and user stories
 - **[Technical Architecture](./docs/SRS.md)** - System design and technical specifications
 - **[Development Progress](./docs/Progress.md)** - Detailed progress tracking and completed features

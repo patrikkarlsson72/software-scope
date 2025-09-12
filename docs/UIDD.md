@@ -6,8 +6,15 @@
   - Right: Settings button  
 - **Main Content**  
   - Title: "Installed Programs"  
-  - Search bar for program names  
-  - Filter dropdowns (Publisher, Program Type, Time Range, VF Deployment)  
+  - **Clean Search Interface** ⭐ **NEW**
+    - Single search bar with flexible width
+    - Collapsible "Filters" button with active filter count badge
+    - Results counter display
+  - **Advanced Filter Panel** ⭐ **NEW** (Hidden by default)
+    - Business Filters: Publisher, VF Deployment
+    - Technical Filters: Program Type, Architecture
+    - Installation Filters: Source, Date Range
+    - Active filter chips with one-click removal
   - Sorting options (Name, Publisher, Version)  
   - Export menu (CSV, HTML, XML, Text)  
   - Program display area: Grid of program cards  
@@ -23,8 +30,15 @@
   - VF deployment badge (purple) when applicable
 
 ## Core Components
-- **Search Bar**: Real-time filtering of program list.  
-- **Filter Controls**: Dropdowns for publisher, type, time, and VF deployment status.  
+- **Search Bar**: Real-time filtering of program list with flexible width.  
+- **Collapsible Filter Panel** ⭐ **NEW**: 
+  - Hidden by default for clean interface
+  - Smart grouping into Business, Technical, and Installation categories
+  - Active filter count badge on toggle button
+- **Filter Chips** ⭐ **NEW**: 
+  - Visual indicators for active filters
+  - One-click removal for individual filters
+  - "Clear All" functionality (preserves VF Managed default)
 - **Sorting Controls**: Buttons for common sort keys.  
 - **Program Cards**: Primary unit of display, each representing a program with VF deployment indicators.  
 - **Export Button**: Dropdown with export format choices.  
@@ -51,6 +65,11 @@
 
 ## Interaction Patterns
 - **Search**: Typing in the search bar instantly filters results.  
+- **Filter Management** ⭐ **NEW**: 
+  - Click "Filters" button to expand/collapse advanced filter panel
+  - Active filters display as removable chips below search bar
+  - Individual filter removal via chip close buttons
+  - "Clear All" button resets filters (preserves VF Managed default)
 - **Filter/Sort**: Selecting filter or sort options refreshes the program grid.  
 - **VF Filter**: Dropdown with options (All Applications, VF Managed, Other Apps) for company-specific filtering.  
 - **Program Card Click**: Opens modal with detailed program information (collapsible sections).  
@@ -71,7 +90,11 @@
 ## Mobile, Web App, Desktop Considerations
 - **Primary Platform**: Desktop (Windows).  
 - **Desktop Focus**: Optimized for large program lists, responsive resizing of card grid.  
-- **Mobile/Web**: Not prioritized but design is responsive; grid adapts to 1–2 cards per row.  
+- **Mobile/Web**: Enhanced responsive design ⭐ **NEW**
+  - Filter panel stacks vertically on smaller screens
+  - Flexible grid layout adapts to screen size
+  - Wrapped filter elements prevent horizontal overflow
+  - Touch-friendly filter chip interactions  
 
 ## Typography
 - **Primary Font**: System font stack (Segoe UI for Windows).  

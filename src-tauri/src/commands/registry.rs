@@ -359,16 +359,33 @@ fn scan_vf_deployed_applications(programs: &mut Vec<ProgramInfo>) {
             }
         }
         
-        // For ALL apps (not just VF Managed), try to detect actual installation location in Program Files
-        if program.install_location.is_none() {
+        // For ALL apps, try to detect actual installation location in Program Files
+        // Check if install_location is None, empty, or invalid path
+        let needs_location_detection = program.install_location.is_none() || 
+            program.install_location.as_ref().map_or(false, |loc| {
+                loc.is_empty() || !Path::new(loc).exists()
+            });
+            
+        if needs_location_detection {
             if let Some(detected_location) = detect_program_files_location(&program.name, program.publisher.as_deref()) {
                 println!("DEBUG: Detected location for {}: {}", program.name, detected_location);
                 program.install_location = Some(detected_location);
             } else {
-                println!("DEBUG: No location detected for {} (publisher: {:?})", program.name, program.publisher);
+                // For VF Managed apps, try additional detection methods
+                if program.is_vf_deployed {
+                    println!("DEBUG: VF Managed app {} - trying additional detection methods", program.name);
+                    if let Some(vf_location) = detect_vf_managed_location(&program.name, program.publisher.as_deref()) {
+                        println!("DEBUG: VF Managed location detected for {}: {}", program.name, vf_location);
+                        program.install_location = Some(vf_location);
+                    } else {
+                        println!("DEBUG: No VF Managed location detected for {} (publisher: {:?})", program.name, program.publisher);
+                    }
+                } else {
+                    println!("DEBUG: No location detected for {} (publisher: {:?})", program.name, program.publisher);
+                }
             }
         } else {
-            println!("DEBUG: {} already has install_location: {:?}", program.name, program.install_location);
+            println!("DEBUG: {} already has valid install_location: {:?}", program.name, program.install_location);
         }
         
         // For ALL apps, scan for shortcuts and ProgramData paths
@@ -736,15 +753,25 @@ fn detect_program_files_location(program_name: &str, publisher: Option<&str>) ->
                     let folder_name_lower = folder_name.to_lowercase();
                     let program_name_lower = program_name.to_lowercase();
                     
-                    // Check if folder name matches program name or publisher
-                    // For 7-Zip, look for exact match or partial match
-                    let is_match = folder_name_lower.contains(&program_name_lower) ||
-                       (publisher.is_some() && folder_name_lower.contains(&publisher.unwrap().to_lowercase())) ||
-                       (program_name_lower.contains("7-zip") && folder_name_lower.contains("7-zip")) ||
-                       (program_name_lower.contains("7zip") && folder_name_lower.contains("7-zip"));
+                    // More flexible matching for VF Managed apps
+                    let is_match = 
+                        // Exact name match
+                        folder_name_lower == program_name_lower ||
+                        // Contains program name
+                        folder_name_lower.contains(&program_name_lower) ||
+                        // Program name contains folder name (for partial matches)
+                        program_name_lower.contains(&folder_name_lower) ||
+                        // Publisher match
+                        (publisher.is_some() && folder_name_lower.contains(&publisher.unwrap().to_lowercase())) ||
+                        // Specific known patterns
+                        (program_name_lower.contains("7-zip") && folder_name_lower.contains("7-zip")) ||
+                        (program_name_lower.contains("7zip") && folder_name_lower.contains("7-zip")) ||
+                        // VF Managed apps might have different naming patterns
+                        (program_name_lower.contains("microsoft") && folder_name_lower.contains("microsoft")) ||
+                        (program_name_lower.contains("office") && folder_name_lower.contains("office")) ||
+                        (program_name_lower.contains("adobe") && folder_name_lower.contains("adobe"));
                     
                     if is_match {
-                        
                         let full_path = entry.path().to_string_lossy().to_string();
                         
                         // Verify it's actually the program by looking for common executable patterns
@@ -783,14 +810,127 @@ fn is_likely_program_folder(folder_path: &str, program_name: &str) -> bool {
         ]);
     }
     
+    // Add patterns for Microsoft applications (common VF Managed apps)
+    if program_name.to_lowercase().contains("microsoft") {
+        common_exe_patterns.extend(vec![
+            "winword.exe".to_string(),
+            "excel.exe".to_string(),
+            "powerpnt.exe".to_string(),
+            "outlook.exe".to_string(),
+            "msedge.exe".to_string(),
+            "chrome.exe".to_string(),
+            "firefox.exe".to_string(),
+        ]);
+    }
+    
+    // Add patterns for Adobe applications
+    if program_name.to_lowercase().contains("adobe") {
+        common_exe_patterns.extend(vec![
+            "acrobat.exe".to_string(),
+            "photoshop.exe".to_string(),
+            "illustrator.exe".to_string(),
+            "indesign.exe".to_string(),
+        ]);
+    }
+    
     if let Ok(entries) = std::fs::read_dir(folder_path) {
         for entry in entries.flatten() {
             if let Some(file_name) = entry.file_name().to_str() {
                 let file_name_lower = file_name.to_lowercase();
+                
+                // Check against specific patterns
                 for pattern in &common_exe_patterns {
                     if file_name_lower.contains(&pattern.to_lowercase()) {
                         return true;
                     }
+                }
+                
+                // Also check for any .exe file (more permissive for VF Managed apps)
+                if file_name_lower.ends_with(".exe") {
+                    // Additional check: make sure it's not a system file
+                    if !file_name_lower.contains("system") && 
+                       !file_name_lower.contains("windows") &&
+                       !file_name_lower.contains("microsoft") {
+                        return true;
+                    }
+                }
+            }
+        }
+    }
+    
+    false
+}
+
+/// Special detection method for VF Managed applications
+fn detect_vf_managed_location(program_name: &str, publisher: Option<&str>) -> Option<String> {
+    // VF Managed apps might be installed in different locations
+    let search_paths = vec![
+        r"C:\Program Files",
+        r"C:\Program Files (x86)",
+        r"C:\ProgramData",
+        r"C:\Windows\System32",
+        r"C:\Windows\SysWOW64",
+    ];
+    
+    for search_path in search_paths {
+        if let Ok(entries) = std::fs::read_dir(search_path) {
+            for entry in entries.flatten() {
+                if let Some(folder_name) = entry.file_name().to_str() {
+                    let folder_name_lower = folder_name.to_lowercase();
+                    let program_name_lower = program_name.to_lowercase();
+                    
+                    // Very flexible matching for VF Managed apps
+                    let is_match = 
+                        // Any partial match
+                        folder_name_lower.contains(&program_name_lower) ||
+                        program_name_lower.contains(&folder_name_lower) ||
+                        // Publisher match
+                        (publisher.is_some() && folder_name_lower.contains(&publisher.unwrap().to_lowercase())) ||
+                        // Common VF Managed app patterns
+                        (program_name_lower.contains("microsoft") && folder_name_lower.contains("microsoft")) ||
+                        (program_name_lower.contains("office") && folder_name_lower.contains("office")) ||
+                        (program_name_lower.contains("adobe") && folder_name_lower.contains("adobe")) ||
+                        (program_name_lower.contains("chrome") && folder_name_lower.contains("google")) ||
+                        (program_name_lower.contains("edge") && folder_name_lower.contains("microsoft"));
+                    
+                    if is_match {
+                        let full_path = entry.path().to_string_lossy().to_string();
+                        
+                        // For VF Managed apps, be more permissive in verification
+                        if is_likely_vf_managed_folder(&full_path, program_name) {
+                            return Some(full_path);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    None
+}
+
+/// Check if a folder is likely to contain a VF Managed application
+fn is_likely_vf_managed_folder(folder_path: &str, _program_name: &str) -> bool {
+    if let Ok(entries) = std::fs::read_dir(folder_path) {
+        for entry in entries.flatten() {
+            if let Some(file_name) = entry.file_name().to_str() {
+                let file_name_lower = file_name.to_lowercase();
+                
+                // Look for any executable file
+                if file_name_lower.ends_with(".exe") {
+                    // Exclude system files but be more permissive for VF Managed apps
+                    if !file_name_lower.contains("system32") && 
+                       !file_name_lower.contains("syswow64") &&
+                       !file_name_lower.contains("windows") {
+                        return true;
+                    }
+                }
+                
+                // Also look for common application files
+                if file_name_lower.ends_with(".dll") || 
+                   file_name_lower.ends_with(".msi") ||
+                   file_name_lower.ends_with(".config") {
+                    return true;
                 }
             }
         }
