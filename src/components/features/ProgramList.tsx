@@ -646,7 +646,9 @@ export const ProgramList: React.FC = () => {
                       <Text fontSize="sm" color="gray.600">Size: {formatFileSize(program.estimated_size)}</Text>
                     )}
                     {program.is_vf_deployed && program.comments && (
-                      <Text fontSize="sm" color="gray.600">APPID: {program.comments}</Text>
+                      <Text fontSize="sm" color="gray.600">
+                        APPID: {program.comments.replace(/^APPID:\s*/, '')}
+                      </Text>
                     )}
                   </VStack>
                 </VStack>

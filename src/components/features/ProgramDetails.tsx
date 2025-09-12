@@ -33,7 +33,7 @@ import {
   Spinner,
 } from '@chakra-ui/react';
 import { ProgramInfo, AteaInformation } from '../../types/ProgramInfo';
-import { ExternalLinkIcon, ChevronDownIcon, ChevronUpIcon, ViewIcon, DeleteIcon, EditIcon, FolderIcon } from '@chakra-ui/icons';
+import { ExternalLinkIcon, ChevronDownIcon, ChevronUpIcon, ViewIcon, DeleteIcon, EditIcon } from '@chakra-ui/icons';
 import { ProgramIcon } from '../common/ProgramIcon';
 import { LogViewer } from '../common/LogViewer';
 import { useSettings } from '../../contexts/SettingsContext';
@@ -388,22 +388,16 @@ export const ProgramDetails: React.FC<ProgramDetailsProps> = ({ program, isOpen,
                             <Text fontSize="sm" fontFamily="monospace" wordBreak="break-all">
                               {program.install_location}
                             </Text>
-                            <Button 
-                              size="xs"
-                              onClick={() => handleCopy(program.install_location!, 'Install location')}
-                            >
-                              Copy
-                            </Button>
                             {(program.architecture === '64-bit' || program.architecture === '32-bit') && (
                               <Button
-                                size="xs"
-                                leftIcon={<FolderIcon />}
+                                size="sm"
                                 onClick={handleOpenProgramFiles}
                                 colorScheme="blue"
                                 variant="outline"
                                 title={`Open ${program.architecture === '64-bit' ? 'C:\\Program Files' : 'C:\\Program Files (x86)'}`}
+                                minW="80px"
                               >
-                                Open
+                                📁 Open
                               </Button>
                             )}
                           </HStack>
