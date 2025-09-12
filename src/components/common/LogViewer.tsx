@@ -475,7 +475,20 @@ export const LogViewer: React.FC<LogViewerProps> = ({ programName, isOpen, onClo
             {/* File List and Content */}
             <HStack spacing={4} align="stretch" flex="1" minH="0">
               {/* File List */}
-              <Box w="40%" borderWidth="1px" borderRadius="md" p={3} overflowY="auto" maxH="100%">
+              <Box 
+                w="40%" 
+                borderWidth="1px" 
+                borderRadius="md" 
+                p={3} 
+                overflowY="auto" 
+                maxH="100%"
+                onWheel={(e) => {
+                  e.stopPropagation();
+                  const element = e.currentTarget;
+                  const delta = e.deltaY;
+                  element.scrollTop += delta;
+                }}
+              >
                 <Text fontSize="sm" fontWeight="bold" mb={3} color="gray.600">
                   Log Files ({filteredAndSortedFiles.length})
                 </Text>
@@ -535,7 +548,20 @@ export const LogViewer: React.FC<LogViewerProps> = ({ programName, isOpen, onClo
               </Box>
 
               {/* Log Content */}
-              <Box w="60%" borderWidth="1px" borderRadius="md" p={3} overflowY="auto" maxH="100%">
+              <Box 
+                w="60%" 
+                borderWidth="1px" 
+                borderRadius="md" 
+                p={3} 
+                overflowY="auto" 
+                maxH="100%"
+                onWheel={(e) => {
+                  e.stopPropagation();
+                  const element = e.currentTarget;
+                  const delta = e.deltaY;
+                  element.scrollTop += delta;
+                }}
+              >
                 {selectedFile ? (
                   <VStack spacing={3} align="stretch">
                     <HStack justify="space-between">
@@ -581,6 +607,12 @@ export const LogViewer: React.FC<LogViewerProps> = ({ programName, isOpen, onClo
                         overflowY="auto"
                         border="1px solid"
                         borderColor="gray.600"
+                        onWheel={(e) => {
+                          e.stopPropagation();
+                          const element = e.currentTarget;
+                          const delta = e.deltaY;
+                          element.scrollTop += delta;
+                        }}
                       >
                         <VStack spacing={0} align="stretch">
                           {logContent.split('\n').map((line, index) => {
