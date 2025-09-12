@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Modal,
   ModalOverlay,
@@ -58,6 +58,12 @@ export const ProgramDetails: React.FC<ProgramDetailsProps> = ({ program, isOpen,
   const { isOpen: isModifyOpen, onOpen: onModifyOpen, onClose: onModifyClose } = useDisclosure();
   const cancelRef = React.useRef<HTMLButtonElement>(null);
 
+  // Drag state management
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [modalPosition, setModalPosition] = useState({ x: 0, y: 0 });
+  const modalRef = useRef<HTMLDivElement>(null);
+
   // Fetch Atea information when program is VF Managed
   useEffect(() => {
     if (program.is_vf_deployed && program.comments) {
@@ -83,6 +89,77 @@ export const ProgramDetails: React.FC<ProgramDetailsProps> = ({ program, isOpen,
       setAteaError(null);
     }
   }, [program.is_vf_deployed, program.comments]);
+
+  // Drag event handlers
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    if (modalRef.current) {
+      const rect = modalRef.current.getBoundingClientRect();
+      setDragOffset({
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top
+      });
+      setIsDragging(true);
+    }
+  }, []);
+
+  const handleMouseMove = useCallback((e: MouseEvent) => {
+    if (isDragging && modalRef.current) {
+      const newX = e.clientX - dragOffset.x;
+      const newY = e.clientY - dragOffset.y;
+      
+      // Get viewport dimensions
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+      
+      // Get modal dimensions
+      const modalRect = modalRef.current.getBoundingClientRect();
+      const modalWidth = modalRect.width;
+      
+      // Constrain to viewport (keep at least 50px visible on each side)
+      const minX = -modalWidth + 50;
+      const maxX = viewportWidth - 50;
+      const minY = 0;
+      const maxY = viewportHeight - 50;
+      
+      const constrainedX = Math.max(minX, Math.min(maxX, newX));
+      const constrainedY = Math.max(minY, Math.min(maxY, newY));
+      
+      setModalPosition({ x: constrainedX, y: constrainedY });
+    }
+  }, [isDragging, dragOffset]);
+
+  const handleMouseUp = useCallback(() => {
+    setIsDragging(false);
+  }, []);
+
+  // Add/remove global mouse event listeners
+  useEffect(() => {
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = 'move';
+      document.body.style.userSelect = 'none';
+    } else {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+  }, [isDragging, handleMouseMove, handleMouseUp]);
+
+  // Reset position when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setModalPosition({ x: 0, y: 0 });
+    }
+  }, [isOpen]);
 
   const handleCopy = (text: string, what: string) => {
     navigator.clipboard.writeText(text);
@@ -149,8 +226,22 @@ export const ProgramDetails: React.FC<ProgramDetailsProps> = ({ program, isOpen,
   return (
     <Modal isOpen={isOpen} onClose={onClose} size={showAdvanced ? "4xl" : "xl"}>
       <ModalOverlay />
-      <ModalContent maxHeight="90vh" overflowY="auto">
-        <ModalHeader>
+      <ModalContent 
+        ref={modalRef}
+        maxHeight="90vh" 
+        overflowY="auto"
+        position="fixed"
+        left={modalPosition.x}
+        top={modalPosition.y}
+        transform="none"
+        transition={isDragging ? "none" : "all 0.2s ease-in-out"}
+      >
+        <ModalHeader
+          onMouseDown={handleMouseDown}
+          cursor={isDragging ? "move" : "grab"}
+          userSelect="none"
+          _hover={{ cursor: "grab" }}
+        >
           <HStack spacing={4} align="flex-start">
             <ProgramIcon 
               programName={program.name} 
