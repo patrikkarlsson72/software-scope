@@ -94,7 +94,7 @@ export const ProgramList: React.FC = () => {
     setProgramType('all');
     setArchitecture('all');
     setInstallationSource('all');
-    // Keep VF deployment as 'vf-managed' to preserve default behavior
+    setVfDeployment('all');
   };
 
   const getFilterChips = () => {
