@@ -1,4 +1,4 @@
-import { Box, Flex, Heading, Button, useDisclosure, HStack } from '@chakra-ui/react';
+import { Box, Flex, Button, useDisclosure, HStack } from '@chakra-ui/react';
 import { SettingsIcon, ViewIcon, InfoIcon } from '@chakra-ui/icons';
 import { SettingsPanel } from '../common/SettingsPanel';
 import { LogViewer } from '../common/LogViewer';

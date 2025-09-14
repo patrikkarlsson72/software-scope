@@ -56,6 +56,7 @@ export const ProgramList: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [sortField, setSortField] = useState<SortField>('name');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>(settings.defaultView);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedPublisher, setSelectedPublisher] = useState<string>('');
@@ -240,6 +241,11 @@ export const ProgramList: React.FC = () => {
     vfDeployment,
   ]);
 
+  // Update view mode when settings change
+  useEffect(() => {
+    setViewMode(settings.defaultView);
+  }, [settings.defaultView]);
+
   // Fetch programs
   useEffect(() => {
     const fetchPrograms = async () => {
@@ -367,6 +373,24 @@ export const ProgramList: React.FC = () => {
           </VStack>
         </VStack>
         <HStack spacing={2}>
+          <ButtonGroup isAttached size="sm">
+            <Button
+              onClick={() => setViewMode('grid')}
+              colorScheme={viewMode === 'grid' ? 'blue' : 'gray'}
+              variant={viewMode === 'grid' ? 'solid' : 'outline'}
+              leftIcon={<Text fontSize="xs">⊞</Text>}
+            >
+              Grid
+            </Button>
+            <Button
+              onClick={() => setViewMode('list')}
+              colorScheme={viewMode === 'list' ? 'blue' : 'gray'}
+              variant={viewMode === 'list' ? 'solid' : 'outline'}
+              leftIcon={<Text fontSize="xs">☰</Text>}
+            >
+              List
+            </Button>
+          </ButtonGroup>
           <Button 
             onClick={() => handleExport()} 
             colorScheme="blue"
@@ -607,73 +631,136 @@ export const ProgramList: React.FC = () => {
           </Button>
         </ButtonGroup>
 
-        {/* Program Grid */}
-        <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={4}>
-          {filteredAndSortedPrograms.map((program) => (
-            <Card 
-              key={program.registry_path}
-              cursor="pointer"
-              _hover={{ shadow: 'md' }}
-              onClick={() => setSelectedProgram(program)}
-              borderLeft={program.is_vf_deployed ? '4px solid' : undefined}
-              borderLeftColor={program.is_vf_deployed ? 'purple.400' : undefined}
-              bg={program.is_vf_deployed ? 'purple.50' : undefined}
-            >
-              <CardBody>
-                <VStack spacing={2} align="stretch">
-                  <HStack spacing={3} align="flex-start">
+        {/* Program Display - Grid or List View */}
+        {viewMode === 'grid' ? (
+          <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={4}>
+            {filteredAndSortedPrograms.map((program) => (
+              <Card 
+                key={program.registry_path}
+                cursor="pointer"
+                _hover={{ shadow: 'md' }}
+                onClick={() => setSelectedProgram(program)}
+                borderLeft={program.is_vf_deployed ? '4px solid' : undefined}
+                borderLeftColor={program.is_vf_deployed ? 'purple.400' : undefined}
+                bg={program.is_vf_deployed ? 'purple.50' : undefined}
+              >
+                <CardBody>
+                  <VStack spacing={2} align="stretch">
+                    <HStack spacing={3} align="flex-start">
+                      <ProgramIcon 
+                        programName={program.name} 
+                        size="24px"
+                        publisher={program.publisher}
+                        iconPath={program.icon_path}
+                        programType={program.program_type}
+                      />
+                      <VStack align="flex-start" spacing={1} flex="1">
+                        <Heading size="sm">{program.name}</Heading>
+                      </VStack>
+                    </HStack>
+                    
+                    <VStack spacing={1} align="stretch">
+                      {program.publisher && <Text fontSize="sm" color="gray.600">Publisher: {program.publisher}</Text>}
+                      {program.version && <Text fontSize="sm" color="gray.600">Version: {program.version}</Text>}
+                      {program.install_date && settings.showInstallDate && (
+                        <Text fontSize="sm" color="gray.600">
+                          Installed: {new Date(program.install_date.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3')).toLocaleDateString()}
+                        </Text>
+                      )}
+                      {program.estimated_size && (
+                        <Text fontSize="sm" color="gray.600">Size: {formatFileSize(program.estimated_size)}</Text>
+                      )}
+                      {program.is_vf_deployed && program.comments && (
+                        <Text fontSize="sm" color="gray.600">
+                          APPID: {program.comments.replace(/^APPID:\s*/, '')}
+                        </Text>
+                      )}
+                    </VStack>
+                  </VStack>
+                  <HStack spacing={2} wrap="wrap">
+                    {settings.showArchitecture && <Badge size="sm" colorScheme="blue">{program.architecture}</Badge>}
+                    <Badge 
+                      size="sm"
+                      colorScheme={
+                        program.installation_source === 'System' ? 'blue' :
+                        program.installation_source === 'User' ? 'green' :
+                        'orange'
+                      }
+                    >
+                      {program.installation_source}
+                    </Badge>
+                    {program.is_vf_deployed && (
+                      <Badge size="sm" colorScheme="purple" variant="solid" fontWeight="bold">
+                        VF Managed
+                      </Badge>
+                    )}
+                  </HStack>
+                </CardBody>
+              </Card>
+            ))}
+          </SimpleGrid>
+        ) : (
+          <VStack spacing={2} align="stretch">
+            {filteredAndSortedPrograms.map((program) => (
+              <Card 
+                key={program.registry_path}
+                cursor="pointer"
+                _hover={{ shadow: 'md' }}
+                onClick={() => setSelectedProgram(program)}
+                borderLeft={program.is_vf_deployed ? '4px solid' : undefined}
+                borderLeftColor={program.is_vf_deployed ? 'purple.400' : undefined}
+                bg={program.is_vf_deployed ? 'purple.50' : undefined}
+              >
+                <CardBody py={3}>
+                  <HStack spacing={4} align="center">
                     <ProgramIcon 
                       programName={program.name} 
-                      size="24px"
+                      size="32px"
                       publisher={program.publisher}
                       iconPath={program.icon_path}
                       programType={program.program_type}
                     />
                     <VStack align="flex-start" spacing={1} flex="1">
                       <Heading size="sm">{program.name}</Heading>
+                      <Text fontSize="sm" color="gray.600">{program.publisher}</Text>
                     </VStack>
+                    <VStack align="flex-end" spacing={1}>
+                      <Text fontSize="sm" fontWeight="medium">{program.version}</Text>
+                      {program.install_date && settings.showInstallDate && (
+                        <Text fontSize="xs" color="gray.500">
+                          {new Date(program.install_date.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3')).toLocaleDateString()}
+                        </Text>
+                      )}
+                      {program.estimated_size && (
+                        <Text fontSize="xs" color="gray.500">{formatFileSize(program.estimated_size)}</Text>
+                      )}
+                    </VStack>
+                    <HStack spacing={2}>
+                      {settings.showArchitecture && (
+                        <Badge size="sm" colorScheme="blue">{program.architecture}</Badge>
+                      )}
+                      <Badge 
+                        size="sm"
+                        colorScheme={
+                          program.installation_source === 'System' ? 'blue' :
+                          program.installation_source === 'User' ? 'green' :
+                          'orange'
+                        }
+                      >
+                        {program.installation_source}
+                      </Badge>
+                      {program.is_vf_deployed && (
+                        <Badge size="sm" colorScheme="purple" variant="solid" fontWeight="bold">
+                          VF Managed
+                        </Badge>
+                      )}
+                    </HStack>
                   </HStack>
-                  
-                  <VStack spacing={1} align="stretch">
-                    {program.publisher && <Text fontSize="sm" color="gray.600">Publisher: {program.publisher}</Text>}
-                    {program.version && <Text fontSize="sm" color="gray.600">Version: {program.version}</Text>}
-                    {program.install_date && settings.showInstallDate && (
-                      <Text fontSize="sm" color="gray.600">
-                        Installed: {new Date(program.install_date.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3')).toLocaleDateString()}
-                      </Text>
-                    )}
-                    {program.estimated_size && (
-                      <Text fontSize="sm" color="gray.600">Size: {formatFileSize(program.estimated_size)}</Text>
-                    )}
-                    {program.is_vf_deployed && program.comments && (
-                      <Text fontSize="sm" color="gray.600">
-                        APPID: {program.comments.replace(/^APPID:\s*/, '')}
-                      </Text>
-                    )}
-                  </VStack>
-                </VStack>
-                <HStack spacing={2} wrap="wrap">
-                  {settings.showArchitecture && <Badge size="sm" colorScheme="blue">{program.architecture}</Badge>}
-                  <Badge 
-                    size="sm"
-                    colorScheme={
-                      program.installation_source === 'System' ? 'blue' :
-                      program.installation_source === 'User' ? 'green' :
-                      'orange'
-                    }
-                  >
-                    {program.installation_source}
-                  </Badge>
-                  {program.is_vf_deployed && (
-                    <Badge size="sm" colorScheme="purple" variant="solid" fontWeight="bold">
-                      VF Managed
-                    </Badge>
-                  )}
-                </HStack>
-              </CardBody>
-            </Card>
-          ))}
-        </SimpleGrid>
+                </CardBody>
+              </Card>
+            ))}
+          </VStack>
+        )}
 
         {selectedProgram && (
           <ProgramDetails
