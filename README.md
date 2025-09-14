@@ -2,7 +2,7 @@
 
 A modern Windows software management tool built with Tauri, React, and Rust. Provides detailed insights into installed programs and their registry information.
 
-**Current Version: 1.2.0** - Latest update includes About section with dynamic version display and enhanced user experience.
+**Current Version: 1.2.1** - Latest update includes professional header design with logo integration, grid/list view modes, and enhanced filter functionality.
 
 ## Features
 
@@ -44,6 +44,8 @@ A modern Windows software management tool built with Tauri, React, and Rust. Pro
   - Intersection Observer for efficient rendering
 
 - 🎨 **Enhanced Visual Experience**
+  - **Professional Header Design**: Clean white header with integrated logo for enterprise environments
+  - **Grid/List View Modes**: Toggle between card-based grid view and compact list view
   - **Smart Icon System**: Direct SVG-based icons for 15+ popular applications
   - **Intelligent Fallback**: Publisher-based matching for HP, Microsoft, and other major vendors
   - **Local Asset Icons**: High-quality SVG icons stored locally for reliability
@@ -176,7 +178,25 @@ The project is in active development. Recent major updates include:
 
 ## Recent Updates
 
-### Version 1.2.0 (Latest)
+### Version 1.2.1 (Latest)
+- **Professional Header Design with Logo Integration**
+  - Clean white header background for enterprise environments
+  - Integrated Software Scope logo with proper contrast
+  - Updated button styling for new header theme
+  - Enhanced professional appearance for IT administrators
+
+- **Grid/List View Modes**
+  - Toggle between card-based grid view and compact list view
+  - Grid view: Traditional card layout with detailed information
+  - List view: Compact horizontal layout for efficient scanning
+  - View mode preference integration with settings
+
+- **Enhanced Filter Functionality**
+  - Fixed "Clear All" button to properly clear all filters including VF deployment
+  - Improved filter chip management and removal
+  - Consistent filter clearing behavior across all filter types
+
+### Version 1.2.0
 - **Added comprehensive About section with dynamic version display**
 - About dialog accessible from header with app information
 - Dynamic version reading from package.json at build time

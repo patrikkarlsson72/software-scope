@@ -481,7 +481,42 @@
 - Fixed `FilterIcon` import error that was causing blank app screen
 - Improved component structure with better separation of concerns
 
-## Recent Updates (v1.1.5)
+## Recent Updates (v1.2.1) ⭐ **LATEST**
+
+### Professional Header Design & Logo Integration
+- **Enhancement**: Complete header redesign for enterprise environments
+- **Key Improvements**:
+  - **Clean white header background** replacing dark blue theme
+  - **Integrated Software Scope logo** with proper contrast and visibility
+  - **Professional button styling** with hover effects and consistent theming
+  - **Enterprise-focused appearance** suitable for IT administrator environments
+- **Technical Implementation**:
+  - Updated theme colors in `src/theme/index.ts`
+  - Modified `MainLayout.tsx` with logo import and header styling
+  - Enhanced button color schemes for new light header theme
+
+### Grid/List View Modes
+- **Enhancement**: Dual view mode system for flexible program display
+- **Key Features**:
+  - **Grid View**: Traditional card-based layout with detailed information
+  - **List View**: Compact horizontal layout for efficient scanning
+  - **Visual toggle buttons** with active state indicators
+  - **Settings integration** for view mode preferences
+- **Technical Implementation**:
+  - Added `viewMode` state management in `ProgramList.tsx`
+  - Implemented conditional rendering for grid vs list layouts
+  - Created responsive design for both view modes
+  - Added view mode toggle button group with visual feedback
+
+### Enhanced Filter Management
+- **Issue**: "Clear All" button was not clearing VF deployment filter
+- **Root Cause**: `clearAllFilters()` function intentionally preserved VF deployment setting
+- **Solution**:
+  - **Fixed Clear All functionality** to properly reset all filters including VF deployment
+  - **Improved filter consistency** across all filter types
+  - **Enhanced user experience** with predictable filter clearing behavior
+
+## Previous Updates (v1.1.5)
 
 ### VF Managed Application Fixes
 - **Issue**: VF Managed applications were not displaying "Install Location" and "Shortcuts" in the details panel

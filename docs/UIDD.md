@@ -2,14 +2,16 @@
 
 ## Layout Structure
 - **Header Bar**  
-  - Left: Application title *Software Scope*  
-  - Right: VF Logs button (if enabled), About button, Settings button  
+  - Left: Software Scope logo (integrated branding)  
+  - Right: VF Logs button (if enabled), About button, Settings button
+  - **Design**: Clean white background with professional styling for enterprise environments  
 - **Main Content**  
   - Title: "Installed Programs"  
   - **Clean Search Interface** ⭐ **NEW**
     - Single search bar with flexible width
     - Collapsible "Filters" button with active filter count badge
     - Results counter display
+    - **View Mode Toggle** ⭐ **NEW**: Grid/List view selector buttons in action bar
   - **Advanced Filter Panel** ⭐ **NEW** (Hidden by default)
     - Business Filters: Publisher, VF Deployment
     - Technical Filters: Program Type, Architecture
@@ -17,7 +19,10 @@
     - Active filter chips with one-click removal
   - Sorting options (Name, Publisher, Version)  
   - Export menu (CSV, HTML, XML, Text)  
-  - Program display area: Grid of program cards  
+  - **Program Display Area**: ⭐ **NEW**
+    - **Grid View**: Traditional card-based layout with detailed information
+    - **List View**: Compact horizontal layout for efficient scanning
+    - View mode toggle with visual indicators  
 - **Program Card** ⭐ **UPDATED v1.1.7**
   - Icon (cached or fallback)  
   - Program name  
@@ -39,10 +44,40 @@
 - **Filter Chips** ⭐ **NEW**: 
   - Visual indicators for active filters
   - One-click removal for individual filters
-  - "Clear All" functionality (preserves VF Managed default)
+  - "Clear All" functionality (clears all filters including VF deployment)
+- **View Mode Toggle** ⭐ **NEW**:
+  - Grid View: Card-based layout with detailed information display
+  - List View: Compact horizontal layout for efficient scanning
+  - Visual toggle buttons with active state indicators in action bar
+  - Instant switching between view modes without page reload
+  - Settings integration for default view preference
 - **Sorting Controls**: Buttons for common sort keys.  
 - **Program Cards**: Primary unit of display, each representing a program with VF deployment indicators.  
-- **Export Button**: Dropdown with export format choices.  
+- **Export Button**: Dropdown with export format choices.
+
+## View Modes ⭐ **NEW v1.2.1**
+
+### Grid View (Default)
+- **Layout**: Card-based grid with 1-3 columns based on screen size
+- **Information Display**: 
+  - Program icon (24px)
+  - Program name and publisher
+  - Version, install date, and file size
+  - Architecture and installation source badges
+  - VF Managed badge when applicable
+- **Use Case**: Detailed information browsing and program management
+- **Toggle**: Accessible via Grid button in action bar
+
+### List View ⭐ **NEW**
+- **Layout**: Compact horizontal rows for efficient scanning
+- **Information Display**:
+  - Program icon (32px) 
+  - Program name and publisher in left column
+  - Version, date, and size in right column
+  - Badges aligned horizontally
+- **Use Case**: Quick scanning and comparison of multiple programs
+- **Toggle**: Accessible via List button in action bar
+- **Settings**: Default view can be set in Settings → Display → Default View  
 - **Settings Panel**: Accessible from header.
 - **About Panel** ⭐ **NEW v1.2.0**: Modal dialog showing app version, build date, technology stack, and copyright information.
 

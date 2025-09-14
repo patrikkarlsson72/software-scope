@@ -57,6 +57,7 @@ Welcome to the Software Scope documentation. This directory contains comprehensi
 ### Core Functionality
 - **Comprehensive Software Inventory**: Scan and list all installed programs
 - **Advanced Filtering**: Filter by publisher, date, type, and VF deployment status
+- **Dual View Modes** ⭐ **NEW**: Toggle between Grid and List views for different use cases
 - **Detailed Program Information**: Registry data, installation details, uninstall commands
 - **Comprehensive Installation Information** ⭐ **NEW**: Install location, size, installer details, folder metadata
 - **UninstallView-Style Interface** ⭐ **NEW**: Action buttons, command display, comprehensive installation details
@@ -71,6 +72,11 @@ Welcome to the Software Scope documentation. This directory contains comprehensi
 ### Performance & UI
 - **Optimized Performance**: Lazy loading, icon caching, efficient rendering
 - **Professional UI**: Modern design with Chakra UI components
+- **Dual View Modes** ⭐ **NEW**:
+  - **Grid View**: Card-based layout for detailed information browsing
+  - **List View**: Compact horizontal layout for efficient scanning
+  - Instant switching between view modes
+  - Settings integration for default view preference
 - **Responsive Design**: Works across different screen sizes
 - **Accessibility**: Keyboard navigation and screen reader support
 

@@ -2,6 +2,65 @@
 
 All notable changes to Software Scope will be documented in this file.
 
+## [1.2.1] - 2025-01-02
+
+### Added
+- **Professional Header Design**
+  - Clean white header background for enterprise environments
+  - Integrated Software Scope logo with proper contrast and visibility (40px height)
+  - Professional button styling with hover effects and consistent theming
+  - Enterprise-focused appearance suitable for IT administrator environments
+
+- **Grid/List View Modes** ⭐ **NEW**
+  - Toggle between card-based grid view and compact list view
+  - Grid View: Traditional card layout with detailed information display
+  - List View: Compact horizontal layout for efficient scanning
+  - Visual toggle buttons with active state indicators in action bar
+  - View mode preference integration with settings system
+  - Instant switching between view modes without page reload
+  - Responsive design for both view modes across different screen sizes
+
+### Fixed
+- **Filter Management**
+  - Fixed "Clear All" button to properly clear all filters including VF deployment
+  - Improved filter chip management and removal behavior
+  - Consistent filter clearing across all filter types
+  - Enhanced user experience with predictable filter behavior
+
+### Technical Changes
+- **Header Redesign**
+  - Updated theme colors in `src/theme/index.ts` for professional appearance
+  - Modified `MainLayout.tsx` with logo import and header styling
+  - Enhanced button color schemes for new light header theme
+  - Added proper asset import handling for logo integration
+
+- **View Mode System**
+  - Added `viewMode` state management in `ProgramList.tsx`
+  - Implemented conditional rendering for grid vs list layouts
+  - Created responsive design for both view modes
+  - Added view mode toggle button group with visual feedback
+  - Added `useEffect` to sync view mode with settings changes
+  - Enhanced logo display with 40px height for better visibility
+  - Added TypeScript declarations for image file imports
+
+- **Filter System Enhancement**
+  - Updated `clearAllFilters()` function to reset VF deployment filter
+  - Improved filter consistency and state management
+  - Enhanced filter chip removal behavior
+
+### UI/UX Improvements
+- **Professional Appearance**
+  - Clean white header replacing dark blue theme
+  - Integrated logo with proper contrast against white background
+  - Consistent button styling throughout application
+  - Enterprise-ready visual design for IT environments
+
+- **Flexible Display Options**
+  - Dual view mode system for different use cases
+  - Grid view for detailed information browsing
+  - List view for quick scanning and comparison
+  - Visual indicators for active view mode
+
 ## [1.2.0] - 2025-01-02
 
 ### Added

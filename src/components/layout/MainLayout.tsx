@@ -24,7 +24,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             <img 
               src={logoImage} 
               alt="Software Scope" 
-              style={{ height: '32px', width: 'auto' }}
+              style={{ height: '40px', width: 'auto' }}
             />
           </Flex>
           <HStack spacing={2}>
