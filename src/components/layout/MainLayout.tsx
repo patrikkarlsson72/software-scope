@@ -4,6 +4,7 @@ import { SettingsPanel } from '../common/SettingsPanel';
 import { LogViewer } from '../common/LogViewer';
 import { AboutPanel } from '../common/AboutPanel';
 import { useSettings } from '../../contexts/SettingsContext';
+import logoImage from '../../assets/icons/logo.png';
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -17,16 +18,22 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
 
   return (
     <Flex direction="column" minH="100vh">
-      <Box as="header" bg="brand.500" color="white" px={8} py={4} boxShadow="sm">
+      <Box as="header" bg="white" color="brand.500" px={8} py={4} boxShadow="sm" borderBottom="1px" borderColor="brand.100">
         <Flex justify="space-between" align="center">
-          <Heading size="lg">Software Scope</Heading>
+          <Flex align="center">
+            <img 
+              src={logoImage} 
+              alt="Software Scope" 
+              style={{ height: '32px', width: 'auto' }}
+            />
+          </Flex>
           <HStack spacing={2}>
             {settings.enableVfLogViewer && (
               <Button
                 leftIcon={<ViewIcon />}
                 variant="ghost"
-                color="white"
-                _hover={{ bg: 'whiteAlpha.200' }}
+                color="brand.500"
+                _hover={{ bg: 'brand.50' }}
                 onClick={onLogViewerOpen}
                 size="sm"
               >
@@ -36,8 +43,8 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             <Button
               leftIcon={<InfoIcon />}
               variant="ghost"
-              color="white"
-              _hover={{ bg: 'whiteAlpha.200' }}
+              color="brand.500"
+              _hover={{ bg: 'brand.50' }}
               onClick={onAboutOpen}
               size="sm"
             >
@@ -46,8 +53,8 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             <Button
               leftIcon={<SettingsIcon />}
               variant="ghost"
-              color="white"
-              _hover={{ bg: 'whiteAlpha.200' }}
+              color="brand.500"
+              _hover={{ bg: 'brand.50' }}
               onClick={onToggle}
             >
               Settings
