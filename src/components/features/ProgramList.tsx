@@ -653,6 +653,7 @@ export const ProgramList: React.FC = () => {
                         publisher={program.publisher}
                         iconPath={program.icon_path}
                         programType={program.program_type}
+                        isVfDeployed={program.is_vf_deployed}
                       />
                       <VStack align="flex-start" spacing={1} flex="1">
                         <Heading size="sm">{program.name}</Heading>
@@ -719,6 +720,7 @@ export const ProgramList: React.FC = () => {
                       publisher={program.publisher}
                       iconPath={program.icon_path}
                       programType={program.program_type}
+                      isVfDeployed={program.is_vf_deployed}
                     />
                     <VStack align="flex-start" spacing={1} flex="1">
                       <Heading size="sm">{program.name}</Heading>

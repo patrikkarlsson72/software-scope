@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   VStack,
@@ -14,10 +14,34 @@ import {
   List,
   ListItem,
   ListIcon,
+  Button,
+  Alert,
+  AlertIcon,
+  AlertTitle,
+  AlertDescription,
+  Spinner,
 } from '@chakra-ui/react';
 import { CheckIcon } from '@chakra-ui/icons';
+import { invoke } from '@tauri-apps/api/tauri';
 
 export const HelpPanel: React.FC = () => {
+  const [debugStatus, setDebugStatus] = useState<string>('');
+  const [isDebugging, setIsDebugging] = useState(false);
+
+  const runVFIconDebug = async () => {
+    setIsDebugging(true);
+    setDebugStatus('Running VF icon debug...');
+    
+    try {
+      const result = await invoke('debug_vf_icons_to_file');
+      setDebugStatus(`✅ ${result}`);
+    } catch (error) {
+      setDebugStatus(`❌ Debug failed: ${error}`);
+    } finally {
+      setIsDebugging(false);
+    }
+  };
+
   return (
     <Box p={4} borderWidth="1px" borderRadius="lg" bg="white" shadow="sm">
       <VStack spacing={6} align="stretch">
@@ -340,6 +364,68 @@ export const HelpPanel: React.FC = () => {
                     If you encounter issues not covered here, check the settings panel for 
                     cache management tools and performance monitoring. The application includes 
                     built-in debugging tools accessible through the settings.
+                  </Text>
+                </Box>
+              </VStack>
+            </AccordionPanel>
+          </AccordionItem>
+
+          {/* VF Icon Debug */}
+          <AccordionItem>
+            <h2>
+              <AccordionButton>
+                <Box flex="1" textAlign="left" fontWeight="semibold">
+                  VF Icon Debug
+                </Box>
+                <AccordionIcon />
+              </AccordionButton>
+            </h2>
+            <AccordionPanel pb={4}>
+              <VStack spacing={4} align="stretch">
+                <Alert status="info">
+                  <AlertIcon />
+                  <Box>
+                    <AlertTitle>Debug VF Managed App Icons</AlertTitle>
+                    <AlertDescription>
+                      This tool helps diagnose why VF managed apps might not be showing correct icons.
+                      It will create a debug report file that you can check.
+                    </AlertDescription>
+                  </Box>
+                </Alert>
+
+                <Button 
+                  colorScheme="purple" 
+                  onClick={runVFIconDebug}
+                  isLoading={isDebugging}
+                  loadingText="Running Debug..."
+                  leftIcon={isDebugging ? <Spinner size="sm" /> : undefined}
+                >
+                  Run VF Icon Debug
+                </Button>
+
+                {debugStatus && (
+                  <Box p={3} bg="gray.50" borderRadius="md">
+                    <Text fontSize="sm" fontFamily="mono">
+                      {debugStatus}
+                    </Text>
+                  </Box>
+                )}
+
+                <Box>
+                  <Text fontWeight="semibold" mb={2}>What this debug tool checks:</Text>
+                  <List spacing={2}>
+                    <ListItem>• Whether any VF managed apps are detected (looking for APPID in Comments field)</ListItem>
+                    <ListItem>• Icon paths for detected VF apps</ListItem>
+                    <ListItem>• Publisher information</ListItem>
+                    <ListItem>• Sample comments from apps to help identify detection issues</ListItem>
+                  </List>
+                </Box>
+
+                <Box>
+                  <Text fontWeight="semibold" mb={2}>After running debug:</Text>
+                  <Text fontSize="sm">
+                    Check the <Code>vf_icon_debug.txt</Code> file in the application directory for detailed results.
+                    This file will help identify why VF managed apps aren't showing correct icons.
                   </Text>
                 </Box>
               </VStack>

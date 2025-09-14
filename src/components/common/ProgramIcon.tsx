@@ -10,6 +10,7 @@ interface ProgramIconProps {
   publisher?: string;
   iconPath?: string;
   programType?: string;
+  isVfDeployed?: boolean;
 }
 
 // Simple icon mapping - direct and reliable
@@ -164,7 +165,8 @@ export const ProgramIcon: React.FC<ProgramIconProps> = ({
   showFallback = true,
   publisher,
   iconPath,
-  programType
+  programType,
+  isVfDeployed = false
 }) => {
   const [iconData, setIconData] = useState<string>('');
 
@@ -176,7 +178,8 @@ export const ProgramIcon: React.FC<ProgramIconProps> = ({
           programName, 
           publisher, 
           programType, 
-          iconPath
+          iconPath,
+          isVfDeployed
         );
         
         if (icon) {
@@ -195,7 +198,7 @@ export const ProgramIcon: React.FC<ProgramIconProps> = ({
     };
 
     loadIcon();
-  }, [programName, publisher, iconPath, programType]);
+  }, [programName, publisher, iconPath, programType, isVfDeployed]);
 
   if (!iconData) {
     if (!showFallback) return null;

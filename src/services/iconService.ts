@@ -99,16 +99,88 @@ class IconService {
     }
   }
 
-  // Get icon for a program with .exe extraction as primary method
-  async getFallbackIcon(programName: string, publisher?: string, programType?: string, iconPath?: string): Promise<string | null> {
+  // Extract icon with VF managed app fallback
+  async extractIconFromPathVF(
+    iconPath: string, 
+    programName: string, 
+    publisher?: string, 
+    isVfDeployed: boolean = false, 
+    preferredSize: number = 32
+  ): Promise<string | null> {
     try {
+      console.log(`🔍 Attempting VF-aware icon extraction for: ${programName} (VF: ${isVfDeployed})`);
+      
+      const response = await invoke('extract_icon_from_path_vf', {
+        request: {
+          icon_path: iconPath,
+          preferred_size: preferredSize,
+          program_name: programName,
+          publisher: publisher,
+          is_vf_deployed: isVfDeployed
+        }
+      }) as { success: boolean; icon?: { data: string; format: string; size: number; source: string }; error?: string };
+
+      if (response.success && response.icon) {
+        console.log(`✅ Successfully extracted VF icon from ${response.icon.source} (${response.icon.size}x${response.icon.size})`);
+        return response.icon.data;
+      } else {
+        console.warn(`❌ Failed to extract VF icon for ${programName}:`, response.error);
+        return null;
+      }
+    } catch (error) {
+      console.error(`💥 Error extracting VF icon for ${programName}:`, error);
+      return null;
+    }
+  }
+
+  // Get icon for a program with .exe extraction as primary method
+  async getFallbackIcon(programName: string, publisher?: string, programType?: string, iconPath?: string, isVfDeployed: boolean = false): Promise<string | null> {
+    try {
+      console.log(`🔍 getFallbackIcon called for: ${programName}, VF: ${isVfDeployed}, iconPath: ${iconPath}`);
+      
+      // TEMPORARY: Force VF-aware extraction for known VF apps (for testing)
+      const knownVfApps = ['7-zip', 'appdisco', 'anydesk', 'jabref', 'lexmark', 'autodesk', 'microsoft'];
+      const isKnownVfApp = knownVfApps.some(app => programName.toLowerCase().includes(app));
+      const shouldUseVfExtraction = isVfDeployed || isKnownVfApp;
+      
+      if (isKnownVfApp && !isVfDeployed) {
+        console.log(`🎯 FORCING VF-aware extraction for known VF app: ${programName}`);
+      }
+      
       // PRIMARY: Try to extract icon from executable/icon file if path is provided
       if (iconPath) {
-        const extractedIcon = await this.extractIconFromPath(iconPath, 32);
-        if (extractedIcon) {
-          console.log(`✅ Extracted authentic icon from ${iconPath} for ${programName}`);
-          return extractedIcon;
+        // Use VF-aware extraction for VF managed apps
+        if (shouldUseVfExtraction) {
+          console.log(`🎯 Using VF-aware extraction for ${programName}`);
+          const extractedIcon = await this.extractIconFromPathVF(iconPath, programName, publisher, true, 32);
+          if (extractedIcon) {
+            console.log(`✅ Extracted VF icon from ${iconPath} for ${programName}`);
+            return extractedIcon;
+          } else {
+            console.log(`❌ VF icon extraction failed for ${programName}`);
+          }
+        } else {
+          console.log(`🎯 Using standard extraction for ${programName}`);
+          const extractedIcon = await this.extractIconFromPath(iconPath, 32);
+          if (extractedIcon) {
+            console.log(`✅ Extracted authentic icon from ${iconPath} for ${programName}`);
+            return extractedIcon;
+          } else {
+            console.log(`❌ Standard icon extraction failed for ${programName}`);
+          }
         }
+      } else if (shouldUseVfExtraction) {
+        // For VF managed apps with no registry icon path, try Program Files scanning directly
+        console.log(`🎯 No registry icon path for VF app ${programName}, trying Program Files scan`);
+        const extractedIcon = await this.extractIconFromPathVF("", programName, publisher, true, 32);
+        if (extractedIcon) {
+          console.log(`✅ Extracted VF icon from Program Files for ${programName}`);
+          return extractedIcon;
+        } else {
+          console.log(`❌ VF Program Files scan failed for ${programName}`);
+        }
+      } else {
+        console.log(`⚠️ No iconPath provided for ${programName}`);
       }
 
       // SECONDARY: Try to find a specific icon for this program from our database

@@ -233,6 +233,117 @@ pub fn debug_icon_paths() -> Result<Vec<DebugIconInfo>, String> {
 }
 
 #[tauri::command]
+pub fn debug_vf_apps() -> Result<Vec<VFDebugInfo>, String> {
+    let mut debug_info = Vec::new();
+    let hklm = RegKey::predef(HKEY_LOCAL_MACHINE);
+
+    if let Ok(uninstall_key) = hklm.open_subkey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall") {
+        for key_result in uninstall_key.enum_keys() {
+            if let Ok(key_name) = key_result {
+                if let Ok(program_key) = uninstall_key.open_subkey(&key_name) {
+                    if let Ok(name) = program_key.get_value::<String, _>("DisplayName") {
+                        let comments: Option<String> = program_key.get_value("Comments").ok();
+                        let has_appid = comments.as_ref().map_or(false, |c| c.contains("APPID:"));
+                        let icon_path: Option<String> = program_key.get_value("DisplayIcon").ok();
+                        let publisher: Option<String> = program_key.get_value("Publisher").ok();
+                        
+                        debug_info.push(VFDebugInfo {
+                            program_name: name,
+                            comments,
+                            has_appid,
+                            is_vf_deployed: has_appid,
+                            icon_path,
+                            publisher,
+                        });
+                    }
+                }
+            }
+        }
+    }
+
+    Ok(debug_info)
+}
+
+#[tauri::command]
+pub fn debug_vf_icons_to_file() -> Result<String, String> {
+    use std::fs::OpenOptions;
+    use std::io::Write;
+    
+    let mut debug_info = Vec::new();
+    let hklm = RegKey::predef(HKEY_LOCAL_MACHINE);
+
+    // Get all programs and check VF status
+    if let Ok(uninstall_key) = hklm.open_subkey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall") {
+        for key_result in uninstall_key.enum_keys() {
+            if let Ok(key_name) = key_result {
+                if let Ok(program_key) = uninstall_key.open_subkey(&key_name) {
+                    if let Ok(name) = program_key.get_value::<String, _>("DisplayName") {
+                        let comments: Option<String> = program_key.get_value("Comments").ok();
+                        let has_appid = comments.as_ref().map_or(false, |c| c.contains("APPID:"));
+                        let icon_path: Option<String> = program_key.get_value("DisplayIcon").ok();
+                        let publisher: Option<String> = program_key.get_value("Publisher").ok();
+                        
+                        debug_info.push(VFDebugInfo {
+                            program_name: name,
+                            comments,
+                            has_appid,
+                            is_vf_deployed: has_appid,
+                            icon_path,
+                            publisher,
+                        });
+                    }
+                }
+            }
+        }
+    }
+
+    // Write debug info to file
+    let debug_file = "vf_icon_debug.txt";
+    let mut file = OpenOptions::new()
+        .create(true)
+        .write(true)
+        .truncate(true)
+        .open(debug_file)
+        .map_err(|e| format!("Failed to create debug file: {}", e))?;
+
+    writeln!(file, "VF Icon Debug Report - {}", chrono::Utc::now().format("%Y-%m-%d %H:%M:%S UTC")).unwrap();
+    writeln!(file, "{}", "=".repeat(60)).unwrap();
+    writeln!(file, "").unwrap();
+
+    let vf_apps: Vec<_> = debug_info.iter().filter(|app| app.is_vf_deployed).collect();
+    writeln!(file, "Found {} VF managed apps out of {} total apps", vf_apps.len(), debug_info.len()).unwrap();
+    writeln!(file, "").unwrap();
+
+    if vf_apps.is_empty() {
+        writeln!(file, "❌ NO VF MANAGED APPS FOUND!").unwrap();
+        writeln!(file, "").unwrap();
+        writeln!(file, "This could be the root cause of the icon issue.").unwrap();
+        writeln!(file, "VF apps are detected by looking for 'APPID:' in the Comments field.").unwrap();
+        writeln!(file, "").unwrap();
+        writeln!(file, "Sample apps with comments (first 10):").unwrap();
+        for app in debug_info.iter().take(10) {
+            if let Some(comments) = &app.comments {
+                writeln!(file, "  - {}: Comments = '{}'", app.program_name, comments).unwrap();
+            }
+        }
+    } else {
+        writeln!(file, "✅ VF MANAGED APPS FOUND:").unwrap();
+        for (i, app) in vf_apps.iter().enumerate() {
+            writeln!(file, "{}. {}", i + 1, app.program_name).unwrap();
+            writeln!(file, "   Publisher: {}", app.publisher.as_deref().unwrap_or("N/A")).unwrap();
+            writeln!(file, "   Icon Path: {}", app.icon_path.as_deref().unwrap_or("N/A")).unwrap();
+            writeln!(file, "   Comments: {}", app.comments.as_deref().unwrap_or("N/A")).unwrap();
+            writeln!(file, "").unwrap();
+        }
+    }
+
+    writeln!(file, "{}", "=".repeat(60)).unwrap();
+    writeln!(file, "End of debug report").unwrap();
+
+    Ok(format!("Debug report written to {}", debug_file))
+}
+
+#[tauri::command]
 pub fn get_icon_as_base64(icon_path: String) -> Result<String, String> {
     // Read the icon file and convert to base64
     match fs::read(&icon_path) {
@@ -275,6 +386,16 @@ pub struct DebugIconInfo {
     pub raw_icon_path: Option<String>,
     pub processed_icon_path: Option<String>,
     pub file_exists: bool,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct VFDebugInfo {
+    pub program_name: String,
+    pub comments: Option<String>,
+    pub has_appid: bool,
+    pub is_vf_deployed: bool,
+    pub icon_path: Option<String>,
+    pub publisher: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
