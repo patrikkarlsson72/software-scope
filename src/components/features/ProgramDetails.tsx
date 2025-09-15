@@ -248,7 +248,6 @@ export const ProgramDetails: React.FC<ProgramDetailsProps> = ({ program, isOpen,
               size="32px"
               publisher={program.publisher}
               iconPath={program.icon_path}
-              programType={program.program_type}
               isVfDeployed={program.is_vf_deployed}
             />
             <VStack align="stretch" spacing={2}>

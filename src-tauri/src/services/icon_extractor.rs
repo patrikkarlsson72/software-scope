@@ -138,7 +138,6 @@ impl IconExtractor {
         })
     }
 
-
     fn save_cache(&self) -> Result<(), Box<dyn std::error::Error>> {
         self.cache.save_to_file(&self.cache_path)
     }
@@ -243,7 +242,6 @@ pub fn resolve_icon_path_with_vf_fallback(icon_path: &str, program_name: &str, p
 }
 
 // Find VF managed app executable in Program Files
-#[allow(dead_code)]
 fn find_vf_app_executable(program_name: &str, publisher: Option<&str>) -> Option<String> {
     println!("🔍 find_vf_app_executable called for: '{}', publisher: {:?}", program_name, publisher);
     
@@ -310,7 +308,6 @@ fn find_vf_app_executable(program_name: &str, publisher: Option<&str>) -> Option
 }
 
 // Find executable file in a folder
-#[allow(dead_code)]
 fn find_executable_in_folder(folder_path: &str, program_name: &str) -> Option<String> {
     println!("🔍 find_executable_in_folder called for: '{}' in '{}'", program_name, folder_path);
     
