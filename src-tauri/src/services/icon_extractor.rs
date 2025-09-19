@@ -157,7 +157,10 @@ impl IconExtractor {
 
 // Helper function to find executable path from registry icon path
 pub fn resolve_icon_path(icon_path: &str) -> Option<String> {
+    println!("🔍 resolve_icon_path called with: '{}'", icon_path);
+    
     if icon_path.is_empty() {
+        println!("❌ Empty icon path provided");
         return None;
     }
 
@@ -171,20 +174,34 @@ pub fn resolve_icon_path(icon_path: &str) -> Option<String> {
 
     // Remove quotes if present
     let path = path.trim_matches('"');
+    println!("🔍 Processed path: '{}'", path);
 
     // Check if it's an absolute path
     if Path::new(path).is_absolute() {
+        println!("🔍 Path is absolute, checking if exists: {}", path);
         if Path::new(path).exists() {
+            println!("✅ Absolute path exists: {}", path);
             return Some(path.to_string());
+        } else {
+            println!("❌ Absolute path does not exist: {}", path);
         }
+    } else {
+        println!("🔍 Path is not absolute, will search in common locations");
     }
 
     // Try to find the file in common locations
     let common_paths = [
         r"C:\Program Files",
         r"C:\Program Files (x86)",
+        r"C:\ProgramData",
+        r"C:\Users\Public",
         r"C:\Windows\System32",
         r"C:\Windows",
+        r"C:\Windows\SysWOW64",
+        r"C:\Program Files\Common Files",
+        r"C:\Program Files (x86)\Common Files",
+        r"C:\Program Files\Microsoft Office",
+        r"C:\Program Files (x86)\Microsoft Office",
     ];
 
     for base_path in &common_paths {
@@ -258,31 +275,27 @@ fn find_vf_app_executable(program_name: &str, publisher: Option<&str>) -> Option
                     let folder_name_lower = folder_name.to_lowercase();
                     let program_name_lower = program_name.to_lowercase();
                     
-                    // Flexible matching for VF managed apps
+                    // More precise matching for VF managed apps
                     let is_match = 
                         // Exact name match
                         folder_name_lower == program_name_lower ||
-                        // Contains program name
-                        folder_name_lower.contains(&program_name_lower) ||
+                        // Contains program name (but not too generic)
+                        (folder_name_lower.contains(&program_name_lower) && program_name_lower.len() > 5) ||
                         // Program name contains folder name (for partial matches)
-                        program_name_lower.contains(&folder_name_lower) ||
-                        // Publisher match
-                        (publisher.is_some() && folder_name_lower.contains(&publisher.unwrap().to_lowercase())) ||
-                        // Specific known patterns for common VF apps
-                        (program_name_lower.contains("7-zip") && folder_name_lower.contains("7-zip")) ||
-                        (program_name_lower.contains("7zip") && folder_name_lower.contains("7-zip")) ||
-                        (program_name_lower.contains("7-zip") && folder_name_lower.contains("7zip")) ||
-                        (program_name_lower.contains("microsoft") && folder_name_lower.contains("microsoft")) ||
-                        (program_name_lower.contains("office") && folder_name_lower.contains("office")) ||
-                        (program_name_lower.contains("adobe") && folder_name_lower.contains("adobe")) ||
-                        (program_name_lower.contains("chrome") && folder_name_lower.contains("google")) ||
-                        (program_name_lower.contains("edge") && folder_name_lower.contains("microsoft")) ||
-                        (program_name_lower.contains("anydesk") && folder_name_lower.contains("anydesk")) ||
-                        (program_name_lower.contains("jabref") && folder_name_lower.contains("jabref")) ||
-                        (program_name_lower.contains("lexmark") && folder_name_lower.contains("lexmark")) ||
-                        (program_name_lower.contains("autodesk") && folder_name_lower.contains("autodesk")) ||
-                        (program_name_lower.contains("appdisco") && folder_name_lower.contains("appdisco")) ||
-                        (program_name_lower.contains("teams") && folder_name_lower.contains("teams"));
+                        (program_name_lower.contains(&folder_name_lower) && folder_name_lower.len() > 5) ||
+                        // Publisher match (more specific)
+                        (publisher.is_some() && 
+                         publisher.unwrap().len() > 3 && 
+                         folder_name_lower.contains(&publisher.unwrap().to_lowercase())) ||
+                        // Word-based matching (any significant word in program name matches folder)
+                        program_name_lower.split_whitespace().any(|word| 
+                            word.len() > 3 && folder_name_lower.contains(word) &&
+                            !word.eq_ignore_ascii_case("for") &&
+                            !word.eq_ignore_ascii_case("the") &&
+                            !word.eq_ignore_ascii_case("and") &&
+                            !word.eq_ignore_ascii_case("app") &&
+                            !word.eq_ignore_ascii_case("apps")
+                        );
                     
                     if is_match {
                         println!("✅ Found matching folder: {}", folder_name);
@@ -321,32 +334,35 @@ fn find_executable_in_folder(folder_path: &str, program_name: &str) -> Option<St
                 if file_name_lower.ends_with(".exe") {
                     println!("🔍 Found executable: {}", file_name);
                     
-                    // Check if it's likely the main executable
+                    // More precise executable matching for VF apps
                     let is_main_executable = 
                         // Exact name match
                         file_name_lower == format!("{}.exe", program_name_lower) ||
-                        // Contains program name
-                        file_name_lower.contains(&program_name_lower) ||
-                        // Common patterns
-                        (file_name_lower.contains("7z") && (program_name_lower.contains("7-zip") || program_name_lower.contains("7zip"))) ||
-                        file_name_lower.contains("chrome") && program_name_lower.contains("chrome") ||
-                        file_name_lower.contains("msedge") && program_name_lower.contains("edge") ||
-                        file_name_lower.contains("winword") && program_name_lower.contains("word") ||
-                        file_name_lower.contains("excel") && program_name_lower.contains("excel") ||
-                        file_name_lower.contains("powerpnt") && program_name_lower.contains("powerpoint") ||
-                        file_name_lower.contains("outlook") && program_name_lower.contains("outlook") ||
-                        file_name_lower.contains("anydesk") && program_name_lower.contains("anydesk") ||
-                        file_name_lower.contains("jabref") && program_name_lower.contains("jabref") ||
-                        file_name_lower.contains("lexmark") && program_name_lower.contains("lexmark") ||
-                        file_name_lower.contains("autodesk") && program_name_lower.contains("autodesk") ||
-                        file_name_lower.contains("appdisco") && program_name_lower.contains("appdisco") ||
-                        file_name_lower.contains("teams") && program_name_lower.contains("teams") ||
-                        // Generic fallback - any .exe that's not a system file
-                        (!file_name_lower.contains("system") && 
-                         !file_name_lower.contains("windows") &&
-                         !file_name_lower.contains("uninstall") &&
+                        // Contains program name (but not too generic)
+                        (file_name_lower.contains(&program_name_lower) && program_name_lower.len() > 5) ||
+                        // Word-based matching with significant words only
+                        program_name_lower.split_whitespace().any(|word| 
+                            word.len() > 3 && file_name_lower.contains(word) &&
+                            !word.eq_ignore_ascii_case("for") &&
+                            !word.eq_ignore_ascii_case("the") &&
+                            !word.eq_ignore_ascii_case("and") &&
+                            !word.eq_ignore_ascii_case("app") &&
+                            !word.eq_ignore_ascii_case("apps")
+                        ) ||
+                        // Less permissive: exclude common non-main executables
+                        (!file_name_lower.contains("uninstall") &&
                          !file_name_lower.contains("setup") &&
-                         !file_name_lower.contains("install"));
+                         !file_name_lower.contains("install") &&
+                         !file_name_lower.contains("update") &&
+                         !file_name_lower.contains("helper") &&
+                         !file_name_lower.contains("service") &&
+                         !file_name_lower.contains("daemon") &&
+                         !file_name_lower.contains("launcher") &&
+                         !file_name_lower.contains("loader") &&
+                         !file_name_lower.contains("crash") &&
+                         !file_name_lower.contains("error") &&
+                         !file_name_lower.contains("repair") &&
+                         file_name_lower.len() > 5);
                     
                     if is_main_executable {
                         println!("✅ Found main executable: {}", file_name);
@@ -366,12 +382,16 @@ fn find_executable_in_folder(folder_path: &str, program_name: &str) -> Option<St
 }
 
 fn find_file_recursive(base_path: &str, filename: &str) -> Option<String> {
-    for entry in WalkDir::new(base_path).max_depth(3) {
+    println!("🔍 Recursively searching for '{}' in '{}'", filename, base_path);
+    for entry in WalkDir::new(base_path).max_depth(5) {  // Increased from 3 to 5
         if let Ok(entry) = entry {
             if entry.file_name().to_str() == Some(filename) {
-                return Some(entry.path().to_string_lossy().to_string());
+                let found_path = entry.path().to_string_lossy().to_string();
+                println!("✅ Found file: {}", found_path);
+                return Some(found_path);
             }
         }
     }
+    println!("❌ File '{}' not found in '{}'", filename, base_path);
     None
 }

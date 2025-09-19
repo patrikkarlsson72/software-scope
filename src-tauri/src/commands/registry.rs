@@ -463,7 +463,7 @@ fn extract_icon_path(icon_path: &str) -> Option<String> {
 }
 
 fn expand_environment_path(path: &str) -> String {
-    // Simple environment variable expansion for common Windows paths
+    // Enhanced environment variable expansion for common Windows paths
     let mut expanded = path.to_string();
     
     // Common Windows environment variables
@@ -474,9 +474,17 @@ fn expand_environment_path(path: &str) -> String {
         ("%SystemRoot%", r"C:\Windows"),
         ("%windir%", r"C:\Windows"),
         ("%SystemDrive%", "C:"),
+        ("%SystemDirectory%", r"C:\Windows\System32"),
+        ("%SystemPath%", r"C:\Windows\System32"),
+        ("%CommonProgramFiles%", r"C:\Program Files\Common Files"),
+        ("%CommonProgramFiles(x86)%", r"C:\Program Files (x86)\Common Files"),
         ("%APPDATA%", r"C:\Users\%USERNAME%\AppData\Roaming"),
         ("%LOCALAPPDATA%", r"C:\Users\%USERNAME%\AppData\Local"),
         ("%USERPROFILE%", r"C:\Users\%USERNAME%"),
+        ("%TEMP%", r"C:\Users\%USERNAME%\AppData\Local\Temp"),
+        ("%TMP%", r"C:\Users\%USERNAME%\AppData\Local\Temp"),
+        ("%PUBLIC%", r"C:\Users\Public"),
+        ("%ALLUSERSPROFILE%", r"C:\ProgramData"),
     ];
     
     for (var, value) in &replacements {
