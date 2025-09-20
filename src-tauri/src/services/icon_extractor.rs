@@ -116,14 +116,43 @@ impl IconExtractor {
 
     fn extract_from_executable(&self, exe_path: &str, preferred_size: u32) -> Result<ExtractedIcon, Box<dyn std::error::Error>> {
         // Use the windows-icons crate to extract icon from executable
-        let base64_data = get_icon_base64_by_path(exe_path)?;
-        
-        Ok(ExtractedIcon {
-            data: format!("data:image/png;base64,{}", base64_data),
-            format: "png".to_string(),
-            size: preferred_size, // The windows-icons crate handles size selection internally
-            source: exe_path.to_string(),
-        })
+        match get_icon_base64_by_path(exe_path) {
+            Ok(base64_data) => {
+                Ok(ExtractedIcon {
+                    data: format!("data:image/png;base64,{}", base64_data),
+                    format: "png".to_string(),
+                    size: preferred_size, // The windows-icons crate handles size selection internally
+                    source: exe_path.to_string(),
+                })
+            }
+            Err(_) => {
+                // If the primary executable doesn't have an icon, try alternative executables in the same folder
+                if let Some(parent_dir) = std::path::Path::new(exe_path).parent() {
+                    if let Some(alternative_path) = find_alternative_executable_with_icon(parent_dir.to_str().unwrap(), exe_path) {
+                        println!("🔄 Trying alternative file for icon: {}", alternative_path);
+                        
+                        match get_icon_base64_by_path(&alternative_path) {
+                            Ok(base64_data) => {
+                                Ok(ExtractedIcon {
+                                    data: format!("data:image/png;base64,{}", base64_data),
+                                    format: "png".to_string(),
+                                    size: preferred_size,
+                                    source: alternative_path,
+                                })
+                            }
+                            Err(e) => {
+                                println!("❌ Failed to extract icon from alternative file {}: {}", alternative_path, e);
+                                Err(e.into())
+                            }
+                        }
+                    } else {
+                        Err(format!("No icon found in {} and no alternative executables available", exe_path).into())
+                    }
+                } else {
+                    Err(format!("Could not determine parent directory for {}", exe_path).into())
+                }
+            }
+        }
     }
 
     fn extract_from_ico_file(&self, ico_path: &str, preferred_size: u32) -> Result<ExtractedIcon, Box<dyn std::error::Error>> {
@@ -320,15 +349,38 @@ fn find_vf_app_executable(program_name: &str, publisher: Option<&str>) -> Option
     None
 }
 
-// Find executable file in a folder
+// Find executable file in a folder with intelligent icon preference
 fn find_executable_in_folder(folder_path: &str, program_name: &str) -> Option<String> {
     println!("🔍 find_executable_in_folder called for: '{}' in '{}'", program_name, folder_path);
     
     if let Ok(entries) = std::fs::read_dir(folder_path) {
+        let mut candidates = Vec::new();
+        
+        // First pass: collect all matching executables
         for entry in entries.flatten() {
             if let Some(file_name) = entry.file_name().to_str() {
                 let file_name_lower = file_name.to_lowercase();
                 let program_name_lower = program_name.to_lowercase();
+                
+                // Look for .ico files first (highest priority)
+                if file_name_lower.ends_with(".ico") {
+                    let ico_base_name = file_name_lower.trim_end_matches(".ico");
+                    // Check if the .ico file matches the program name
+                    let is_matching_ico = 
+                        ico_base_name == program_name_lower ||
+                        ico_base_name.contains(&program_name_lower) ||
+                        program_name_lower.contains(&ico_base_name) ||
+                        program_name_lower.split_whitespace().any(|word| 
+                            word.len() > 3 && ico_base_name.contains(word)
+                        );
+                    
+                    if is_matching_ico {
+                        let path = entry.path().to_string_lossy().to_string();
+                        let priority = 400; // .ico files get highest priority
+                        candidates.push((path, file_name.to_string(), priority));
+                        println!("✅ Found matching .ico file: {} (priority: {})", file_name, priority);
+                    }
+                }
                 
                 // Look for executable files
                 if file_name_lower.ends_with(".exe") {
@@ -365,19 +417,136 @@ fn find_executable_in_folder(folder_path: &str, program_name: &str) -> Option<St
                          file_name_lower.len() > 5);
                     
                     if is_main_executable {
-                        println!("✅ Found main executable: {}", file_name);
-                        return Some(entry.path().to_string_lossy().to_string());
+                        let path = entry.path().to_string_lossy().to_string();
+                        let priority = calculate_executable_priority(&file_name_lower);
+                        candidates.push((path, file_name.to_string(), priority));
+                        println!("✅ Found candidate executable: {} (priority: {})", file_name, priority);
                     } else {
                         println!("ℹ️ Executable '{}' doesn't match criteria", file_name);
                     }
                 }
             }
         }
+        
+        // Second pass: select the best candidate based on icon likelihood
+        if !candidates.is_empty() {
+            // Sort by priority (higher priority = more likely to have good icon)
+            candidates.sort_by(|a, b| b.2.cmp(&a.2));
+            let best_candidate = &candidates[0];
+            println!("✅ Selected best executable: {} (priority: {})", best_candidate.1, best_candidate.2);
+            return Some(best_candidate.0.clone());
+        }
     } else {
         println!("❌ Failed to read directory: {}", folder_path);
     }
     
     println!("❌ No suitable executable found in: {}", folder_path);
+    None
+}
+
+// Calculate priority for executable selection based on icon likelihood
+fn calculate_executable_priority(file_name_lower: &str) -> i32 {
+    let mut priority = 0;
+    
+    // High priority: GUI applications (most likely to have good icons)
+    if file_name_lower.contains("fm") || file_name_lower.contains("filemanager") || file_name_lower.contains("gui") {
+        priority += 100;
+    }
+    if file_name_lower.contains("g") && !file_name_lower.contains("gui") {
+        priority += 90; // Single letter 'g' often indicates GUI version
+    }
+    if file_name_lower.contains("desktop") || file_name_lower.contains("client") {
+        priority += 80;
+    }
+    
+    // Medium priority: Main application executables
+    if file_name_lower.len() <= 10 && !file_name_lower.contains("cmd") && !file_name_lower.contains("cli") {
+        priority += 50;
+    }
+    
+    // Lower priority: Command line tools (less likely to have good icons)
+    if file_name_lower.contains("cmd") || file_name_lower.contains("cli") || file_name_lower.contains("console") {
+        priority -= 50;
+    }
+    
+    // Negative priority: Utility executables
+    if file_name_lower.contains("util") || file_name_lower.contains("tool") || file_name_lower.contains("helper") {
+        priority -= 30;
+    }
+    
+    // Special case: 7-Zip specific logic
+    if file_name_lower.contains("7z") {
+        if file_name_lower.contains("fm") {
+            priority += 150; // 7zFM.exe is the File Manager GUI
+        } else if file_name_lower.contains("g") {
+            priority += 140; // 7zG.exe is the GUI version
+        } else if file_name_lower == "7z.exe" {
+            priority -= 100; // 7z.exe is command-line only
+        }
+    }
+    
+    priority
+}
+
+// Find alternative executable or icon file in the same folder that might have an icon
+fn find_alternative_executable_with_icon(folder_path: &str, original_exe_path: &str) -> Option<String> {
+    println!("🔍 Looking for alternative executables and icon files in: {}", folder_path);
+    
+    if let Ok(entries) = std::fs::read_dir(folder_path) {
+        let mut candidates = Vec::new();
+        let original_filename = std::path::Path::new(original_exe_path)
+            .file_name()
+            .and_then(|name| name.to_str())
+            .unwrap_or("")
+            .to_lowercase();
+        
+        // Get the base name without extension for matching .ico files
+        let base_name = std::path::Path::new(original_exe_path)
+            .file_stem()
+            .and_then(|name| name.to_str())
+            .unwrap_or("")
+            .to_lowercase();
+        
+        for entry in entries.flatten() {
+            if let Some(file_name) = entry.file_name().to_str() {
+                let file_name_lower = file_name.to_lowercase();
+                
+                // Skip the original executable
+                if file_name_lower == original_filename {
+                    continue;
+                }
+                
+                // Look for .ico files that match the executable name
+                if file_name_lower.ends_with(".ico") {
+                    let ico_base_name = file_name_lower.trim_end_matches(".ico");
+                    if ico_base_name == base_name || ico_base_name.contains(&base_name) || base_name.contains(ico_base_name) {
+                        let priority = 300; // .ico files get highest priority
+                        let path = entry.path().to_string_lossy().to_string();
+                        candidates.push((path, file_name.to_string(), priority));
+                        println!("🔍 Found matching .ico file: {} (priority: {})", file_name, priority);
+                    }
+                }
+                
+                // Look for other executable files
+                if file_name_lower.ends_with(".exe") {
+                    let priority = calculate_executable_priority(&file_name_lower);
+                    let path = entry.path().to_string_lossy().to_string();
+                    candidates.push((path, file_name.to_string(), priority));
+                    println!("🔍 Found alternative executable: {} (priority: {})", file_name, priority);
+                }
+            }
+        }
+        
+        // Sort by priority and return the best candidate
+        if !candidates.is_empty() {
+            candidates.sort_by(|a, b| b.2.cmp(&a.2));
+            let best_candidate = &candidates[0];
+            println!("✅ Selected best icon source: {} (priority: {})", best_candidate.1, best_candidate.2);
+            return Some(best_candidate.0.clone());
+        }
+    }
+    
+    println!("❌ No alternative executables or icon files found in: {}", folder_path);
     None
 }
 

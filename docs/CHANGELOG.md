@@ -2,6 +2,53 @@
 
 All notable changes to Software Scope will be documented in this file.
 
+## [1.2.7] - 2025-01-03
+
+### Fixed
+- **Icon Path Resolution System** ⭐ **MAJOR IMPROVEMENT**
+  - **Expanded Search Scope**: Enhanced icon path resolution to search beyond basic Program Files directories
+  - **Comprehensive Directory Coverage**: Now searches in ProgramData, Users\Public, Common Files, Microsoft Office directories, and SysWOW64
+  - **Increased Search Depth**: Extended recursive search from 3 to 5 levels to handle complex application structures
+  - **Enhanced Environment Variable Support**: Added support for %SystemDirectory%, %CommonProgramFiles%, %PUBLIC%, %ALLUSERSPROFILE% and more
+  - **Improved VF App Detection**: Made VF app executable finding more precise and less permissive
+  - **Enhanced Debugging**: Added comprehensive logging to diagnose icon path resolution issues
+  - **Microsoft 365 Apps Support**: Significantly improved icon detection for Microsoft 365 Apps in different locales
+  - **Better Error Handling**: Enhanced error reporting and path validation throughout the icon system
+  - **Intelligent Executable Selection**: Fixed 7-Zip and similar applications showing wrong icons by prioritizing GUI executables over command-line tools
+  - **ICO File Support**: Added automatic detection and prioritization of dedicated .ico files (e.g., Texmaker)
+  - **Automatic Fallback**: System now automatically tries alternative sources if primary source has no icon
+
+### Technical Changes
+- **Backend Enhancements**
+  - Modified `resolve_icon_path()` function in `src-tauri/src/services/icon_extractor.rs`
+  - Enhanced `find_file_recursive()` with increased depth and better debugging
+  - Improved `expand_environment_path()` in `src-tauri/src/commands/registry.rs`
+  - Refined VF app executable matching logic for better accuracy
+  - Added comprehensive debug logging throughout icon resolution process
+  - Implemented intelligent icon source selection with priority-based ranking
+  - Added automatic fallback to alternative sources when primary has no icon
+  - Created `calculate_executable_priority()` function for smart executable selection
+  - Enhanced `find_executable_in_folder()` to detect and prioritize .ico files
+  - Added `find_alternative_executable_with_icon()` for comprehensive fallback mechanism
+  - Added .ico file detection and matching logic for dedicated icon files
+
+- **Icon Resolution Improvements**
+  - Expanded search paths from 4 to 11 common Windows directories
+  - Increased recursive search depth from 3 to 5 levels
+  - Enhanced environment variable expansion with 8 additional variables
+  - Improved executable matching criteria for VF-managed applications
+  - Added detailed logging for troubleshooting icon path issues
+
+### Performance
+- **Icon Detection**: Significantly improved success rate for finding application icons
+- **VF Applications**: Better icon detection for VF-managed applications with more precise matching
+- **Complex Applications**: Enhanced support for applications with deeper directory structures
+- **Microsoft Office**: Improved icon resolution for Microsoft 365 Apps across different locales
+- **Multi-Executable Applications**: Fixed icon display for applications like 7-Zip with multiple executables
+- **GUI Preference**: System now correctly prioritizes GUI executables over command-line tools for better icon quality
+- **ICO File Applications**: Fixed icon display for applications like Texmaker with dedicated .ico files
+- **Comprehensive Icon Sources**: System now checks both .ico files and executables for optimal icon quality
+
 ## [1.2.1] - 2025-01-02
 
 ### Added

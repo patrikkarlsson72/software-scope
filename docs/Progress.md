@@ -481,7 +481,40 @@
 - Fixed `FilterIcon` import error that was causing blank app screen
 - Improved component structure with better separation of concerns
 
-## Recent Updates (v1.2.1) ⭐ **LATEST**
+## Recent Updates (v1.2.7) ⭐ **LATEST**
+
+### Icon Path Resolution System Enhancement
+- **Major Improvement**: Comprehensive overhaul of icon path resolution system
+- **Key Enhancements**:
+  - **Expanded Search Scope**: Increased from 4 to 11 Windows directories for comprehensive icon detection
+  - **Deep Recursive Search**: Extended search depth from 3 to 5 levels for complex application structures
+  - **Enhanced Environment Variables**: Added support for 8 additional Windows environment variables
+  - **Improved VF App Detection**: More precise and less permissive executable matching for VF-managed applications
+  - **Comprehensive Debugging**: Added detailed logging throughout the icon resolution process
+  - **Microsoft 365 Apps Support**: Significantly improved icon detection for Microsoft 365 Apps across different locales
+
+- **Technical Implementation**:
+  - Modified `resolve_icon_path()` function with expanded search paths and better debugging
+  - Enhanced `find_file_recursive()` with increased depth and comprehensive logging
+  - Improved `expand_environment_path()` with additional Windows environment variables
+  - Refined VF app executable matching logic for better accuracy and fewer false positives
+  - Added step-by-step debugging output for troubleshooting icon path issues
+
+- **Performance Impact**:
+  - **Icon Detection Success Rate**: Significantly improved success rate for finding application icons
+  - **VF Applications**: Better icon detection for VF-managed applications with more precise matching
+  - **Complex Applications**: Enhanced support for applications with deeper directory structures
+  - **Microsoft Office**: Improved icon resolution for Microsoft 365 Apps across different locales
+
+- **Search Directory Expansion**:
+  - **Standard**: `C:\Program Files`, `C:\Program Files (x86)`, `C:\Windows\System32`, `C:\Windows`
+  - **Enhanced**: `C:\ProgramData`, `C:\Users\Public`, `C:\Windows\SysWOW64`, `C:\Program Files\Common Files`, `C:\Program Files (x86)\Common Files`, `C:\Program Files\Microsoft Office`, `C:\Program Files (x86)\Microsoft Office`
+
+- **Environment Variable Support**:
+  - Added: `%SystemDirectory%`, `%SystemPath%`, `%CommonProgramFiles%`, `%CommonProgramFiles(x86)%`, `%PUBLIC%`, `%ALLUSERSPROFILE%`
+  - Enhanced existing support for `%ProgramFiles%`, `%ProgramFiles(x86)%`, `%ProgramData%`, `%SystemRoot%`, `%windir%`
+
+## Recent Updates (v1.2.1)
 
 ### Professional Header Design & Logo Integration
 - **Enhancement**: Complete header redesign for enterprise environments
