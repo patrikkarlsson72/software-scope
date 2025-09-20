@@ -7,6 +7,10 @@ export interface AppSettings {
   fallbackCacheDuration: number; // in days
   enableFallbackIcons: boolean;
   
+  // Custom Icon Settings
+  enableCustomIcons: boolean;
+  customIconDirectory: string;
+  
   // Display Settings
   defaultView: 'grid' | 'list';
   itemsPerPage: number;
@@ -38,6 +42,8 @@ const defaultSettings: AppSettings = {
   iconCacheDuration: 24,
   fallbackCacheDuration: 7,
   enableFallbackIcons: true,
+  enableCustomIcons: true,
+  customIconDirectory: 'custom_icons',
   defaultView: 'grid',
   itemsPerPage: 50,
   showArchitecture: true,

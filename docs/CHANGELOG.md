@@ -18,6 +18,8 @@ All notable changes to Software Scope will be documented in this file.
   - **ICO File Support**: Added automatic detection and prioritization of dedicated .ico files (e.g., Texmaker)
   - **Complex Name Handling**: Enhanced support for applications with complex names like MiKTeX and AppDisco
   - **Publisher Prefix Matching**: Added support for executables with publisher prefixes (e.g., "Atea.Tools.AppDisco.exe")
+  - **AppDisco Icon Fix**: Added special case for "discovery.ico" file used by AppDisco application
+  - **Generic .ico Fallback**: Added fallback mechanism to use any .ico file when specific matching fails
   - **Automatic Fallback**: System now automatically tries alternative sources if primary source has no icon
 
 ### Technical Changes
@@ -37,6 +39,9 @@ All notable changes to Software Scope will be documented in this file.
   - Added publisher prefix matching for executables with namespace prefixes
   - Implemented application-specific priority rules for MiKTeX and AppDisco
   - Added special debugging for known problematic applications
+  - Added special case matching for AppDisco's "discovery.ico" file
+  - Implemented generic .ico file fallback mechanism for unmatched applications
+  - Enhanced .ico file detection with better debugging output
 
 - **Icon Resolution Improvements**
   - Expanded search paths from 4 to 11 common Windows directories

@@ -406,11 +406,12 @@ async getFileSystemIcon(iconPath: string): Promise<string> {
 - Handles multi-component application names
 
 **Issue**: AppDisco showing generic icon instead of proper AppDisco icon
-**Root Cause**: Executable name "Atea.Tools.AppDisco.exe" not matching simple program name "AppDisco"
-**Solution**: Added publisher prefix matching logic:
-- Matches "Atea.Tools.AppDisco.exe" to "AppDisco" program name
-- Prioritizes publisher-prefixed executables (Priority: 110)
-- Enhanced word-based matching for publisher namespaces
+**Root Cause**: AppDisco uses "discovery.ico" file instead of "appdisco.ico", and executable name "Atea.Tools.AppDisco.exe" not matching simple program name "AppDisco"
+**Solution**: Added comprehensive AppDisco support:
+- Special case matching for "discovery.ico" when program name is "AppDisco"
+- Publisher prefix matching: "Atea.Tools.AppDisco.exe" to "AppDisco" program name
+- Fallback mechanism: Uses any .ico file if specific matching fails
+- Prioritizes .ico files (Priority: 400) over executables (Priority: 110)
 
 ### Debug Tools
 

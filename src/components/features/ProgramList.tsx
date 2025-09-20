@@ -32,6 +32,7 @@ import {
   TagCloseButton,
   useDisclosure,
   Divider,
+  MenuDivider,
 } from '@chakra-ui/react';
 import { ProgramInfo } from '../../types/ProgramInfo';
 import { useDebounce } from '../../hooks/useDebounce';
@@ -299,6 +300,93 @@ export const ProgramList: React.FC = () => {
     } catch (error) {
       toast({
         title: 'Export Failed',
+        description: error instanceof Error ? error.message : 'Unknown error occurred',
+        status: 'error',
+        duration: 3000,
+      });
+    }
+  };
+
+  const handleSetCustomIcon = async (program: ProgramInfo) => {
+    try {
+      const { open } = await import('@tauri-apps/api/dialog');
+      const selectedFile = await open({
+        title: `Select Icon for ${program.name}`,
+        filters: [
+          {
+            name: 'Icon Files',
+            extensions: ['png', 'ico', 'svg']
+          },
+          {
+            name: 'All Files',
+            extensions: ['*']
+          }
+        ]
+      });
+
+      if (selectedFile && typeof selectedFile === 'string') {
+        const response = await invoke('set_custom_icon', {
+          request: {
+            program_name: program.name,
+            icon_path: selectedFile,
+            preferred_size: 32
+          }
+        }) as { success: boolean; message: string };
+
+        if (response.success) {
+          toast({
+            title: 'Custom Icon Set',
+            description: `Custom icon set for ${program.name}`,
+            status: 'success',
+            duration: 3000,
+          });
+          // Refresh the program list to show the new icon
+          window.location.reload();
+        } else {
+          toast({
+            title: 'Failed to Set Icon',
+            description: response.message,
+            status: 'error',
+            duration: 3000,
+          });
+        }
+      }
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Unknown error occurred',
+        status: 'error',
+        duration: 3000,
+      });
+    }
+  };
+
+  const handleRemoveCustomIcon = async (program: ProgramInfo) => {
+    try {
+      const response = await invoke('remove_custom_icon', {
+        programName: program.name
+      }) as { success: boolean; message: string };
+
+      if (response.success) {
+        toast({
+          title: 'Custom Icon Removed',
+          description: `Custom icon removed for ${program.name}`,
+          status: 'success',
+          duration: 3000,
+        });
+        // Refresh the program list to show the original icon
+        window.location.reload();
+      } else {
+        toast({
+          title: 'Failed to Remove Icon',
+          description: response.message,
+          status: 'error',
+          duration: 3000,
+        });
+      }
+    } catch (error) {
+      toast({
+        title: 'Error',
         description: error instanceof Error ? error.message : 'Unknown error occurred',
         status: 'error',
         duration: 3000,
@@ -635,15 +723,17 @@ export const ProgramList: React.FC = () => {
         {viewMode === 'grid' ? (
           <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={4}>
             {filteredAndSortedPrograms.map((program) => (
-              <Card 
-                key={program.registry_path}
-                cursor="pointer"
-                _hover={{ shadow: 'md' }}
-                onClick={() => setSelectedProgram(program)}
-                borderLeft={program.is_vf_deployed ? '4px solid' : undefined}
-                borderLeftColor={program.is_vf_deployed ? 'purple.400' : undefined}
-                bg={program.is_vf_deployed ? 'purple.50' : undefined}
-              >
+              <Menu key={program.registry_path}>
+                <MenuButton
+                  as={Card}
+                  cursor="pointer"
+                  _hover={{ shadow: 'md' }}
+                  onClick={() => setSelectedProgram(program)}
+                  borderLeft={program.is_vf_deployed ? '4px solid' : undefined}
+                  borderLeftColor={program.is_vf_deployed ? 'purple.400' : undefined}
+                  bg={program.is_vf_deployed ? 'purple.50' : undefined}
+                  onContextMenu={(e) => e.preventDefault()}
+                >
                 <CardBody>
                   <VStack spacing={2} align="stretch">
                     <HStack spacing={3} align="flex-start">
@@ -696,21 +786,36 @@ export const ProgramList: React.FC = () => {
                     )}
                   </HStack>
                 </CardBody>
-              </Card>
+                </MenuButton>
+                <MenuList>
+                  <MenuItem onClick={() => setSelectedProgram(program)}>
+                    View Details
+                  </MenuItem>
+                  <MenuDivider />
+                  <MenuItem onClick={() => handleSetCustomIcon(program)}>
+                    Set Custom Icon
+                  </MenuItem>
+                  <MenuItem onClick={() => handleRemoveCustomIcon(program)}>
+                    Remove Custom Icon
+                  </MenuItem>
+                </MenuList>
+              </Menu>
             ))}
           </SimpleGrid>
         ) : (
           <VStack spacing={2} align="stretch">
             {filteredAndSortedPrograms.map((program) => (
-              <Card 
-                key={program.registry_path}
-                cursor="pointer"
-                _hover={{ shadow: 'md' }}
-                onClick={() => setSelectedProgram(program)}
-                borderLeft={program.is_vf_deployed ? '4px solid' : undefined}
-                borderLeftColor={program.is_vf_deployed ? 'purple.400' : undefined}
-                bg={program.is_vf_deployed ? 'purple.50' : undefined}
-              >
+              <Menu key={program.registry_path}>
+                <MenuButton
+                  as={Card}
+                  cursor="pointer"
+                  _hover={{ shadow: 'md' }}
+                  onClick={() => setSelectedProgram(program)}
+                  borderLeft={program.is_vf_deployed ? '4px solid' : undefined}
+                  borderLeftColor={program.is_vf_deployed ? 'purple.400' : undefined}
+                  bg={program.is_vf_deployed ? 'purple.50' : undefined}
+                  onContextMenu={(e) => e.preventDefault()}
+                >
                 <CardBody py={3}>
                   <HStack spacing={4} align="center">
                     <ProgramIcon 
@@ -757,7 +862,20 @@ export const ProgramList: React.FC = () => {
                     </HStack>
                   </HStack>
                 </CardBody>
-              </Card>
+                </MenuButton>
+                <MenuList>
+                  <MenuItem onClick={() => setSelectedProgram(program)}>
+                    View Details
+                  </MenuItem>
+                  <MenuDivider />
+                  <MenuItem onClick={() => handleSetCustomIcon(program)}>
+                    Set Custom Icon
+                  </MenuItem>
+                  <MenuItem onClick={() => handleRemoveCustomIcon(program)}>
+                    Remove Custom Icon
+                  </MenuItem>
+                </MenuList>
+              </Menu>
             ))}
           </VStack>
         )}

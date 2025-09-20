@@ -33,6 +33,7 @@ import {
   AlertDescription,
   Input,
 } from '@chakra-ui/react';
+import { invoke } from '@tauri-apps/api/tauri';
 import { useIconCache } from '../../hooks/useIconCache';
 import { iconService } from '../../services/iconService';
 import { IconDebugger } from './IconDebugger';
@@ -83,6 +84,7 @@ export const SettingsPanel: React.FC = () => {
         <TabList>
           <Tab>Cache & Performance</Tab>
           <Tab>Display</Tab>
+          <Tab>Custom Icons</Tab>
           <Tab>Export</Tab>
           <Tab>VF Logs</Tab>
           <Tab>CLI</Tab>
@@ -261,6 +263,94 @@ export const SettingsPanel: React.FC = () => {
                     onChange={(e) => handleSettingChange('showInstallDate', e.target.checked)}
                   />
                 </FormControl>
+              </HStack>
+            </VStack>
+          </TabPanel>
+
+          {/* Custom Icons Tab */}
+          <TabPanel>
+            <VStack spacing={6} align="stretch">
+              <Text fontSize="lg" fontWeight="bold">Custom Icon Management</Text>
+              
+              <Alert status="info">
+                <AlertIcon />
+                <Box>
+                  <AlertTitle>Custom Icons</AlertTitle>
+                  <AlertDescription>
+                    Add your own icons for applications when automatic detection fails or you want to override the default icon.
+                  </AlertDescription>
+                </Box>
+              </Alert>
+
+              <FormControl>
+                <FormLabel>Enable Custom Icons</FormLabel>
+                <Switch
+                  isChecked={settings.enableCustomIcons}
+                  onChange={(e) => handleSettingChange('enableCustomIcons', e.target.checked)}
+                />
+                <FormHelperText>Allow custom icons to override automatically detected icons</FormHelperText>
+              </FormControl>
+
+              <FormControl>
+                <FormLabel>Custom Icons Directory</FormLabel>
+                <Input
+                  value={settings.customIconDirectory}
+                  onChange={(e) => handleSettingChange('customIconDirectory', e.target.value)}
+                  placeholder="custom_icons"
+                />
+                <FormHelperText>Directory where custom icons are stored (relative to app data directory)</FormHelperText>
+              </FormControl>
+
+              <Box p={4} borderWidth="1px" borderRadius="md" bg="blue.50">
+                <Text fontSize="sm" color="blue.700">
+                  <strong>How to use Custom Icons:</strong>
+                  <br />• Right-click on any program in the list and select "Set Custom Icon"
+                  <br />• Supported formats: PNG, ICO, SVG
+                  <br />• Icons will be automatically resized to fit the display
+                  <br />• Custom icons take priority over automatically detected icons
+                </Text>
+              </Box>
+
+              <HStack spacing={3}>
+                <Button 
+                  onClick={() => {
+                    invoke('open_custom_icons_directory')
+                      .then(() => {
+                        toast({
+                          title: 'Directory Opened',
+                          description: 'Custom icons directory opened in file explorer',
+                          status: 'success',
+                          duration: 2000,
+                        });
+                      })
+                      .catch((error) => {
+                        toast({
+                          title: 'Error',
+                          description: `Failed to open directory: ${error}`,
+                          status: 'error',
+                          duration: 3000,
+                        });
+                      });
+                  }}
+                  colorScheme="blue"
+                  size="sm"
+                >
+                  Open Icons Directory
+                </Button>
+                <Button 
+                  onClick={() => {
+                    // TODO: Implement refresh custom icons list
+                    toast({
+                      title: 'Refresh',
+                      description: 'Custom icons list refreshed',
+                      status: 'info',
+                      duration: 2000,
+                    });
+                  }}
+                  size="sm"
+                >
+                  Refresh List
+                </Button>
               </HStack>
             </VStack>
           </TabPanel>

@@ -4,6 +4,7 @@ use std::collections::HashMap;
 use serde::{Serialize, Deserialize};
 use windows_icons::get_icon_base64_by_path;
 use walkdir::WalkDir;
+use dirs;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ExtractedIcon {
@@ -182,6 +183,53 @@ impl IconExtractor {
     pub fn get_cache_stats(&self) -> (usize, String) {
         (self.cache.icons.len(), self.cache.last_updated.clone())
     }
+
+    // Check for custom icon for a program
+    #[allow(dead_code)]
+    pub fn get_custom_icon(&self, program_name: &str) -> Option<ExtractedIcon> {
+        // Get custom icons directory
+        let mut custom_icons_dir = dirs::data_dir()?;
+        custom_icons_dir.push("software-scope");
+        custom_icons_dir.push("custom_icons");
+        
+        // Sanitize program name for filename
+        let sanitized_name = program_name
+            .chars()
+            .map(|c| if c.is_alphanumeric() || c == '-' || c == '_' { c } else { '_' })
+            .collect::<String>();
+        
+        let custom_icon_path = custom_icons_dir.join(format!("{}.json", sanitized_name));
+        
+        if !custom_icon_path.exists() {
+            return None;
+        }
+
+        // Read custom icon info
+        match fs::read_to_string(&custom_icon_path) {
+            Ok(json) => {
+                #[derive(Deserialize)]
+                struct CustomIconInfo {
+                    icon_data: String,
+                    format: String,
+                    size: u32,
+                    icon_path: String,
+                }
+                
+                match serde_json::from_str::<CustomIconInfo>(&json) {
+                    Ok(info) => {
+                        Some(ExtractedIcon {
+                            data: info.icon_data,
+                            format: info.format,
+                            size: info.size,
+                            source: info.icon_path,
+                        })
+                    }
+                    Err(_) => None,
+                }
+            }
+            Err(_) => None,
+        }
+    }
 }
 
 // Helper function to find executable path from registry icon path
@@ -294,6 +342,9 @@ fn find_vf_app_executable(program_name: &str, publisher: Option<&str>) -> Option
     // Special debugging for known problematic applications
     if program_name.to_lowercase().contains("miktex") || program_name.to_lowercase().contains("appdisco") {
         println!("🔍 Special handling for known problematic application: {}", program_name);
+        if program_name.to_lowercase() == "appdisco" {
+            println!("🔍 AppDisco detected - looking for discovery.ico and Atea.Tools.AppDisco.exe");
+        }
     }
     
     let program_files_paths = vec![
@@ -385,6 +436,8 @@ fn find_executable_in_folder(folder_path: &str, program_name: &str) -> Option<St
                         program_name_lower.contains(&ico_base_name) ||
                         // Publisher prefix matching for .ico files
                         ico_base_name.contains(&format!(".{}", program_name_lower)) ||
+                        // Special case: AppDisco uses "discovery.ico"
+                        (program_name_lower == "appdisco" && ico_base_name == "discovery") ||
                         // Word-based matching with significant words only
                         program_name_lower.split_whitespace().any(|word| 
                             word.len() > 3 && ico_base_name.contains(word) &&
@@ -405,11 +458,20 @@ fn find_executable_in_folder(folder_path: &str, program_name: &str) -> Option<St
                     
                     if is_matching_ico {
                         let path = entry.path().to_string_lossy().to_string();
-                        let priority = 400; // .ico files get highest priority
+                        let mut priority = 400; // .ico files get highest priority by default
+                        
+                        // Special case: For AppDisco, .ico files should have lower priority than executables
+                        if program_name_lower == "appdisco" {
+                            priority = 300; // Lower priority for AppDisco .ico files
+                        }
+                        
                         candidates.push((path, file_name.to_string(), priority));
                         println!("✅ Found matching .ico file: {} (priority: {})", file_name, priority);
+                    } else {
+                        println!("ℹ️ .ico file '{}' doesn't match program name '{}'", file_name, program_name);
                     }
                 }
+                
                 
                 // Look for executable files
                 if file_name_lower.ends_with(".exe") {
@@ -473,8 +535,23 @@ fn find_executable_in_folder(folder_path: &str, program_name: &str) -> Option<St
             // Sort by priority (higher priority = more likely to have good icon)
             candidates.sort_by(|a, b| b.2.cmp(&a.2));
             let best_candidate = &candidates[0];
-            println!("✅ Selected best executable: {} (priority: {})", best_candidate.1, best_candidate.2);
+            println!("✅ Selected best icon source: {} (priority: {})", best_candidate.1, best_candidate.2);
             return Some(best_candidate.0.clone());
+        }
+        
+        // Third pass: if no specific matches found, look for any .ico file as fallback
+        println!("🔍 No specific matches found, looking for any .ico file as fallback...");
+        if let Ok(entries) = std::fs::read_dir(folder_path) {
+            for entry in entries.flatten() {
+                if let Some(file_name) = entry.file_name().to_str() {
+                    let file_name_lower = file_name.to_lowercase();
+                    if file_name_lower.ends_with(".ico") {
+                        let path = entry.path().to_string_lossy().to_string();
+                        println!("✅ Found fallback .ico file: {} (priority: 350)", file_name);
+                        return Some(path);
+                    }
+                }
+            }
         }
     } else {
         println!("❌ Failed to read directory: {}", folder_path);
@@ -537,8 +614,13 @@ fn calculate_executable_priority(file_name_lower: &str) -> i32 {
     // Special case: AppDisco specific logic
     if file_name_lower.contains("appdisco") {
         if file_name_lower.contains("tools") {
-            priority += 110; // Atea.Tools.AppDisco.exe is the main executable
+            priority += 500; // Atea.Tools.AppDisco.exe gets highest priority (higher than .ico files)
         }
+    }
+    
+    // Special case: For AppDisco, executables should have higher priority than .ico files
+    if file_name_lower.contains("appdisco") && file_name_lower.ends_with(".exe") {
+        priority += 100; // Boost executable priority for AppDisco
     }
     
     priority
@@ -583,6 +665,7 @@ fn find_alternative_executable_with_icon(folder_path: &str, original_exe_path: &
                     }
                 }
                 
+                
                 // Look for other executable files
                 if file_name_lower.ends_with(".exe") {
                     let priority = calculate_executable_priority(&file_name_lower);
@@ -605,6 +688,7 @@ fn find_alternative_executable_with_icon(folder_path: &str, original_exe_path: &
     println!("❌ No alternative executables or icon files found in: {}", folder_path);
     None
 }
+
 
 fn find_file_recursive(base_path: &str, filename: &str) -> Option<String> {
     println!("🔍 Recursively searching for '{}' in '{}'", filename, base_path);

@@ -74,6 +74,14 @@ class IconService {
         return cachedIcon;
       }
 
+      // Check for custom icon first (highest priority)
+      const customIcon = await this.getCustomIcon(programName);
+      if (customIcon) {
+        console.log(`✅ Using custom icon for ${programName}`);
+        this.setCachedIcon(cacheKey, customIcon);
+        return customIcon;
+      }
+
       // If we have an icon path, try to extract from it
       if (iconPath) {
         const extractedIcon = await this.extractIconFromExecutable(iconPath, 32);
@@ -97,6 +105,26 @@ class IconService {
       return null;
     } catch (error) {
       console.error(`❌ Failed to get icon for ${programName}:`, error);
+      return null;
+    }
+  }
+
+  // Get custom icon for a program
+  private async getCustomIcon(programName: string): Promise<string | null> {
+    try {
+      const response = await invoke('get_custom_icon', {
+        programName: programName
+      }) as { success: boolean; icon_info?: { icon_data: string; format: string; size: number; icon_path: string; created_at: string }; message: string };
+
+      if (response.success && response.icon_info) {
+        console.log(`✅ Found custom icon for: ${programName}`);
+        return response.icon_info.icon_data;
+      } else {
+        console.log(`ℹ️ No custom icon found for: ${programName}`);
+        return null;
+      }
+    } catch (error) {
+      console.error(`❌ Error getting custom icon for ${programName}:`, error);
       return null;
     }
   }

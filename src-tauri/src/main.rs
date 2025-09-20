@@ -8,6 +8,7 @@ use commands::export::*;
 use commands::cli::*;
 use commands::logs::*;
 use commands::icon_extraction::*;
+use commands::custom_icons::*;
 use services::icon_extractor::IconExtractor;
 
 fn main() {
@@ -42,7 +43,12 @@ fn main() {
             clear_icon_cache,
             resolve_icon_path_command,
             get_atea_information,
-            open_program_files_folder
+            open_program_files_folder,
+            set_custom_icon,
+            get_custom_icon,
+            remove_custom_icon,
+            list_custom_icons,
+            open_custom_icons_directory
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
