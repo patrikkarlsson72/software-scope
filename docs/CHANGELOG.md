@@ -16,6 +16,8 @@ All notable changes to Software Scope will be documented in this file.
   - **Better Error Handling**: Enhanced error reporting and path validation throughout the icon system
   - **Intelligent Executable Selection**: Fixed 7-Zip and similar applications showing wrong icons by prioritizing GUI executables over command-line tools
   - **ICO File Support**: Added automatic detection and prioritization of dedicated .ico files (e.g., Texmaker)
+  - **Complex Name Handling**: Enhanced support for applications with complex names like MiKTeX and AppDisco
+  - **Publisher Prefix Matching**: Added support for executables with publisher prefixes (e.g., "Atea.Tools.AppDisco.exe")
   - **Automatic Fallback**: System now automatically tries alternative sources if primary source has no icon
 
 ### Technical Changes
@@ -31,6 +33,10 @@ All notable changes to Software Scope will be documented in this file.
   - Enhanced `find_executable_in_folder()` to detect and prioritize .ico files
   - Added `find_alternative_executable_with_icon()` for comprehensive fallback mechanism
   - Added .ico file detection and matching logic for dedicated icon files
+  - Enhanced complex name handling for applications with parentheses and commas
+  - Added publisher prefix matching for executables with namespace prefixes
+  - Implemented application-specific priority rules for MiKTeX and AppDisco
+  - Added special debugging for known problematic applications
 
 - **Icon Resolution Improvements**
   - Expanded search paths from 4 to 11 common Windows directories
@@ -47,6 +53,8 @@ All notable changes to Software Scope will be documented in this file.
 - **Multi-Executable Applications**: Fixed icon display for applications like 7-Zip with multiple executables
 - **GUI Preference**: System now correctly prioritizes GUI executables over command-line tools for better icon quality
 - **ICO File Applications**: Fixed icon display for applications like Texmaker with dedicated .ico files
+- **Complex Name Applications**: Fixed icon display for applications like MiKTeX with complex multi-component names
+- **Publisher-Prefixed Applications**: Fixed icon display for applications like AppDisco with publisher namespace prefixes
 - **Comprehensive Icon Sources**: System now checks both .ico files and executables for optimal icon quality
 
 ## [1.2.1] - 2025-01-02

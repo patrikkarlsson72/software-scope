@@ -291,6 +291,11 @@ pub fn resolve_icon_path_with_vf_fallback(icon_path: &str, program_name: &str, p
 fn find_vf_app_executable(program_name: &str, publisher: Option<&str>) -> Option<String> {
     println!("🔍 find_vf_app_executable called for: '{}', publisher: {:?}", program_name, publisher);
     
+    // Special debugging for known problematic applications
+    if program_name.to_lowercase().contains("miktex") || program_name.to_lowercase().contains("appdisco") {
+        println!("🔍 Special handling for known problematic application: {}", program_name);
+    }
+    
     let program_files_paths = vec![
         r"C:\Program Files",
         r"C:\Program Files (x86)",
@@ -323,8 +328,16 @@ fn find_vf_app_executable(program_name: &str, publisher: Option<&str>) -> Option
                             !word.eq_ignore_ascii_case("the") &&
                             !word.eq_ignore_ascii_case("and") &&
                             !word.eq_ignore_ascii_case("app") &&
-                            !word.eq_ignore_ascii_case("apps")
-                        );
+                            !word.eq_ignore_ascii_case("apps") &&
+                            !word.eq_ignore_ascii_case("ide") &&
+                            !word.eq_ignore_ascii_case("latex")
+                        ) ||
+                        // Special handling for complex names with parentheses and commas
+                        (program_name_lower.contains("(") && program_name_lower.contains(")") && 
+                         program_name_lower.split(",").any(|part| {
+                             let clean_part = part.trim().replace("(", "").replace(")", "").to_lowercase();
+                             clean_part.len() > 3 && folder_name_lower.contains(&clean_part)
+                         }));
                     
                     if is_match {
                         println!("✅ Found matching folder: {}", folder_name);
@@ -370,9 +383,25 @@ fn find_executable_in_folder(folder_path: &str, program_name: &str) -> Option<St
                         ico_base_name == program_name_lower ||
                         ico_base_name.contains(&program_name_lower) ||
                         program_name_lower.contains(&ico_base_name) ||
+                        // Publisher prefix matching for .ico files
+                        ico_base_name.contains(&format!(".{}", program_name_lower)) ||
+                        // Word-based matching with significant words only
                         program_name_lower.split_whitespace().any(|word| 
-                            word.len() > 3 && ico_base_name.contains(word)
-                        );
+                            word.len() > 3 && ico_base_name.contains(word) &&
+                            !word.eq_ignore_ascii_case("for") &&
+                            !word.eq_ignore_ascii_case("the") &&
+                            !word.eq_ignore_ascii_case("and") &&
+                            !word.eq_ignore_ascii_case("app") &&
+                            !word.eq_ignore_ascii_case("apps") &&
+                            !word.eq_ignore_ascii_case("ide") &&
+                            !word.eq_ignore_ascii_case("latex")
+                        ) ||
+                        // Special handling for complex names with parentheses and commas
+                        (program_name_lower.contains("(") && program_name_lower.contains(")") && 
+                         program_name_lower.split(",").any(|part| {
+                             let clean_part = part.trim().replace("(", "").replace(")", "").to_lowercase();
+                             clean_part.len() > 3 && ico_base_name.contains(&clean_part)
+                         }));
                     
                     if is_matching_ico {
                         let path = entry.path().to_string_lossy().to_string();
@@ -392,6 +421,9 @@ fn find_executable_in_folder(folder_path: &str, program_name: &str) -> Option<St
                         file_name_lower == format!("{}.exe", program_name_lower) ||
                         // Contains program name (but not too generic)
                         (file_name_lower.contains(&program_name_lower) && program_name_lower.len() > 5) ||
+                        // Publisher prefix matching (e.g., "Atea.Tools.AppDisco.exe" matches "AppDisco")
+                        file_name_lower.contains(&format!(".{}.", program_name_lower)) ||
+                        file_name_lower.ends_with(&format!(".{}.exe", program_name_lower)) ||
                         // Word-based matching with significant words only
                         program_name_lower.split_whitespace().any(|word| 
                             word.len() > 3 && file_name_lower.contains(word) &&
@@ -399,8 +431,16 @@ fn find_executable_in_folder(folder_path: &str, program_name: &str) -> Option<St
                             !word.eq_ignore_ascii_case("the") &&
                             !word.eq_ignore_ascii_case("and") &&
                             !word.eq_ignore_ascii_case("app") &&
-                            !word.eq_ignore_ascii_case("apps")
+                            !word.eq_ignore_ascii_case("apps") &&
+                            !word.eq_ignore_ascii_case("ide") &&
+                            !word.eq_ignore_ascii_case("latex")
                         ) ||
+                        // Special handling for complex names with parentheses and commas
+                        (program_name_lower.contains("(") && program_name_lower.contains(")") && 
+                         program_name_lower.split(",").any(|part| {
+                             let clean_part = part.trim().replace("(", "").replace(")", "").to_lowercase();
+                             clean_part.len() > 3 && file_name_lower.contains(&clean_part)
+                         })) ||
                         // Less permissive: exclude common non-main executables
                         (!file_name_lower.contains("uninstall") &&
                          !file_name_lower.contains("setup") &&
@@ -482,6 +522,22 @@ fn calculate_executable_priority(file_name_lower: &str) -> i32 {
             priority += 140; // 7zG.exe is the GUI version
         } else if file_name_lower == "7z.exe" {
             priority -= 100; // 7z.exe is command-line only
+        }
+    }
+    
+    // Special case: MiKTeX specific logic
+    if file_name_lower.contains("miktex") {
+        if file_name_lower.contains("console") {
+            priority += 120; // MiKTeX Console is the main GUI
+        } else if file_name_lower.contains("gui") {
+            priority += 130; // GUI versions get higher priority
+        }
+    }
+    
+    // Special case: AppDisco specific logic
+    if file_name_lower.contains("appdisco") {
+        if file_name_lower.contains("tools") {
+            priority += 110; // Atea.Tools.AppDisco.exe is the main executable
         }
     }
     

@@ -103,10 +103,16 @@ Enhanced support for Windows environment variables:
 
 #### Icon Source Priority System
 1. **Dedicated .ico Files** - Priority: 400 ⭐ **HIGHEST**
-2. **GUI Executables** (FM, GUI versions) - Priority: 100-150
-3. **Main Application Executables** - Priority: 50
-4. **Command-line Tools** - Priority: -50
-5. **Utility Executables** - Priority: -30
+2. **Application-Specific GUI** (7-Zip FM, MiKTeX Console, AppDisco Tools) - Priority: 110-150
+3. **General GUI Executables** (FM, GUI versions) - Priority: 100-130
+4. **Main Application Executables** - Priority: 50
+5. **Command-line Tools** - Priority: -50
+6. **Utility Executables** - Priority: -30
+
+#### Complex Name Handling
+- **Parentheses and Commas**: Handles complex names like "LaTeX IDE (MiKTeX, JabRef, Texmaker)"
+- **Publisher Prefixes**: Matches executables like "Atea.Tools.AppDisco.exe" to "AppDisco"
+- **Multi-word Applications**: Enhanced word-based matching for applications with multiple components
 
 #### Debugging and Troubleshooting
 - **Comprehensive Logging**: Detailed debug output for icon path resolution
@@ -391,6 +397,20 @@ async getFileSystemIcon(iconPath: string): Promise<string> {
 
 **Issue**: Applications with dedicated .ico files not using them
 **Solution**: System now automatically detects and prioritizes .ico files over executables
+
+**Issue**: MiKTeX showing generic icon instead of proper MiKTeX icon
+**Root Cause**: Complex application name "LaTeX IDE (MiKTeX, JabRef, Texmaker)" not matching folder structure
+**Solution**: Enhanced complex name handling with parentheses and comma parsing:
+- Extracts "MiKTeX" from complex name for folder matching
+- Prioritizes `miktex-console.exe` (Priority: 120) as main GUI executable
+- Handles multi-component application names
+
+**Issue**: AppDisco showing generic icon instead of proper AppDisco icon
+**Root Cause**: Executable name "Atea.Tools.AppDisco.exe" not matching simple program name "AppDisco"
+**Solution**: Added publisher prefix matching logic:
+- Matches "Atea.Tools.AppDisco.exe" to "AppDisco" program name
+- Prioritizes publisher-prefixed executables (Priority: 110)
+- Enhanced word-based matching for publisher namespaces
 
 ### Debug Tools
 
