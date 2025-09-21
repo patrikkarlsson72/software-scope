@@ -32,7 +32,6 @@ import {
   TagCloseButton,
   useDisclosure,
   Divider,
-  MenuDivider,
 } from '@chakra-ui/react';
 import { ProgramInfo } from '../../types/ProgramInfo';
 import { useDebounce } from '../../hooks/useDebounce';
@@ -72,6 +71,17 @@ export const ProgramList: React.FC = () => {
   const [installationSource, setInstallationSource] = useState<InstallationSource>('all');
   const [vfDeployment, setVfDeployment] = useState<VFDeployment>('vf-managed');
   const [selectedProgram, setSelectedProgram] = useState<ProgramInfo | null>(null);
+  const [contextMenu, setContextMenu] = useState<{
+    isOpen: boolean;
+    x: number;
+    y: number;
+    program: ProgramInfo | null;
+  }>({
+    isOpen: false,
+    x: 0,
+    y: 0,
+    program: null,
+  });
 
   const debouncedSearchTerm = useDebounce(searchTerm);
   const toast = useToast();
@@ -247,6 +257,20 @@ export const ProgramList: React.FC = () => {
     setViewMode(settings.defaultView);
   }, [settings.defaultView]);
 
+  // Close context menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = () => {
+      if (contextMenu.isOpen) {
+        closeContextMenu();
+      }
+    };
+
+    if (contextMenu.isOpen) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [contextMenu.isOpen]);
+
   // Fetch programs
   useEffect(() => {
     const fetchPrograms = async () => {
@@ -392,6 +416,25 @@ export const ProgramList: React.FC = () => {
         duration: 3000,
       });
     }
+  };
+
+  const handleContextMenu = (e: React.MouseEvent, program: ProgramInfo) => {
+    e.preventDefault();
+    setContextMenu({
+      isOpen: true,
+      x: e.clientX,
+      y: e.clientY,
+      program: program,
+    });
+  };
+
+  const closeContextMenu = () => {
+    setContextMenu({
+      isOpen: false,
+      x: 0,
+      y: 0,
+      program: null,
+    });
   };
 
   if (loading) {
@@ -723,17 +766,16 @@ export const ProgramList: React.FC = () => {
         {viewMode === 'grid' ? (
           <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={4}>
             {filteredAndSortedPrograms.map((program) => (
-              <Menu key={program.registry_path}>
-                <MenuButton
-                  as={Card}
-                  cursor="pointer"
-                  _hover={{ shadow: 'md' }}
-                  onClick={() => setSelectedProgram(program)}
-                  borderLeft={program.is_vf_deployed ? '4px solid' : undefined}
-                  borderLeftColor={program.is_vf_deployed ? 'purple.400' : undefined}
-                  bg={program.is_vf_deployed ? 'purple.50' : undefined}
-                  onContextMenu={(e) => e.preventDefault()}
-                >
+              <Card 
+                key={program.registry_path}
+                cursor="pointer"
+                _hover={{ shadow: 'md' }}
+                onClick={() => setSelectedProgram(program)}
+                onContextMenu={(e) => handleContextMenu(e, program)}
+                borderLeft={program.is_vf_deployed ? '4px solid' : undefined}
+                borderLeftColor={program.is_vf_deployed ? 'purple.400' : undefined}
+                bg={program.is_vf_deployed ? 'purple.50' : undefined}
+              >
                 <CardBody>
                   <VStack spacing={2} align="stretch">
                     <HStack spacing={3} align="flex-start">
@@ -786,36 +828,22 @@ export const ProgramList: React.FC = () => {
                     )}
                   </HStack>
                 </CardBody>
-                </MenuButton>
-                <MenuList>
-                  <MenuItem onClick={() => setSelectedProgram(program)}>
-                    View Details
-                  </MenuItem>
-                  <MenuDivider />
-                  <MenuItem onClick={() => handleSetCustomIcon(program)}>
-                    Set Custom Icon
-                  </MenuItem>
-                  <MenuItem onClick={() => handleRemoveCustomIcon(program)}>
-                    Remove Custom Icon
-                  </MenuItem>
-                </MenuList>
-              </Menu>
+              </Card>
             ))}
           </SimpleGrid>
         ) : (
           <VStack spacing={2} align="stretch">
             {filteredAndSortedPrograms.map((program) => (
-              <Menu key={program.registry_path}>
-                <MenuButton
-                  as={Card}
-                  cursor="pointer"
-                  _hover={{ shadow: 'md' }}
-                  onClick={() => setSelectedProgram(program)}
-                  borderLeft={program.is_vf_deployed ? '4px solid' : undefined}
-                  borderLeftColor={program.is_vf_deployed ? 'purple.400' : undefined}
-                  bg={program.is_vf_deployed ? 'purple.50' : undefined}
-                  onContextMenu={(e) => e.preventDefault()}
-                >
+              <Card 
+                key={program.registry_path}
+                cursor="pointer"
+                _hover={{ shadow: 'md' }}
+                onClick={() => setSelectedProgram(program)}
+                onContextMenu={(e) => handleContextMenu(e, program)}
+                borderLeft={program.is_vf_deployed ? '4px solid' : undefined}
+                borderLeftColor={program.is_vf_deployed ? 'purple.400' : undefined}
+                bg={program.is_vf_deployed ? 'purple.50' : undefined}
+              >
                 <CardBody py={3}>
                   <HStack spacing={4} align="center">
                     <ProgramIcon 
@@ -862,20 +890,7 @@ export const ProgramList: React.FC = () => {
                     </HStack>
                   </HStack>
                 </CardBody>
-                </MenuButton>
-                <MenuList>
-                  <MenuItem onClick={() => setSelectedProgram(program)}>
-                    View Details
-                  </MenuItem>
-                  <MenuDivider />
-                  <MenuItem onClick={() => handleSetCustomIcon(program)}>
-                    Set Custom Icon
-                  </MenuItem>
-                  <MenuItem onClick={() => handleRemoveCustomIcon(program)}>
-                    Remove Custom Icon
-                  </MenuItem>
-                </MenuList>
-              </Menu>
+              </Card>
             ))}
           </VStack>
         )}
@@ -886,6 +901,59 @@ export const ProgramList: React.FC = () => {
             isOpen={!!selectedProgram}
             onClose={() => setSelectedProgram(null)}
           />
+        )}
+
+        {/* Context Menu */}
+        {contextMenu.isOpen && contextMenu.program && (
+          <Box
+            position="fixed"
+            top={contextMenu.y}
+            left={contextMenu.x}
+            zIndex={1000}
+            bg="white"
+            border="1px solid"
+            borderColor="gray.200"
+            borderRadius="md"
+            shadow="lg"
+            minW="200px"
+          >
+            <VStack spacing={0} align="stretch">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setSelectedProgram(contextMenu.program);
+                  closeContextMenu();
+                }}
+                justifyContent="flex-start"
+              >
+                View Details
+              </Button>
+              <Divider />
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  handleSetCustomIcon(contextMenu.program!);
+                  closeContextMenu();
+                }}
+                justifyContent="flex-start"
+              >
+                Set Custom Icon
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  handleRemoveCustomIcon(contextMenu.program!);
+                  closeContextMenu();
+                }}
+                justifyContent="flex-start"
+              >
+                Remove Custom Icon
+              </Button>
+            </VStack>
+          </Box>
         )}
       </Stack>
     </Box>
