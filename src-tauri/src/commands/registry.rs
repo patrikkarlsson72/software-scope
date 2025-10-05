@@ -411,6 +411,7 @@ pub struct AteaInformation {
     pub name: Option<String>,
     pub revision: Option<String>,
     pub version: Option<String>,
+    pub detection_key: Option<String>,
 }
 
 fn extract_icon_path(icon_path: &str) -> Option<String> {
@@ -1109,6 +1110,7 @@ pub fn get_atea_information(appid: String) -> Result<AteaInformation, String> {
                                 name: app_key.get_value("Name").ok(),
                                 revision: app_key.get_value("Revision").ok(),
                                 version: app_key.get_value("Version").ok(),
+                                detection_key: Some(guid.clone()),
                             });
                         }
                     }

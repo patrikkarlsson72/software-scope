@@ -49,4 +49,5 @@ export interface AteaInformation {
   name?: string;
   revision?: string;
   version?: string;
+  detection_key?: string;
 }

@@ -395,6 +395,24 @@ export const ProgramDetails: React.FC<ProgramDetailsProps> = ({ program, isOpen,
                             </GridItem>
                           </>
                         )}
+                        {ateaInfo.detection_key && (
+                          <>
+                            <GridItem><Text color="gray.600" fontWeight="medium">Detection Key</Text></GridItem>
+                            <GridItem>
+                              <HStack>
+                                <Text fontSize="sm" fontFamily="monospace" wordBreak="break-all">
+                                  {ateaInfo.detection_key}
+                                </Text>
+                                <Button 
+                                  size="xs"
+                                  onClick={() => handleCopy(ateaInfo.detection_key!, 'Detection Key')}
+                                >
+                                  Copy
+                                </Button>
+                              </HStack>
+                            </GridItem>
+                          </>
+                        )}
                         {ateaInfo.app_script_author && (
                           <>
                             <GridItem><Text color="gray.600" fontWeight="medium">Script Author</Text></GridItem>
